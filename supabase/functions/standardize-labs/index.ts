@@ -114,6 +114,44 @@ serve(async (req) => {
       );
     }
 
+    // Standardize numeric values based on test type
+    const standardizeValue = (value: number, testName: string): number => {
+      if (isNaN(value) || value === null) return value;
+      
+      // Tests that should be integers (counts, large values)
+      const integerTests = [
+        'WBC', 'RBC', 'Platelet Count', 'Glucose Fasting', 'Glucose Random', 
+        'Glucose PP', 'Total Cholesterol', 'HDL Cholesterol', 'LDL Cholesterol',
+        'Triglycerides', 'VLDL', 'Urea', 'BUN', 'Uric Acid',
+        'Sodium', 'Potassium', 'Chloride', 'Calcium', 'Magnesium', 'Phosphorus',
+        'SGOT/AST', 'SGPT/ALT', 'Alkaline Phosphatase', 'GGT', 'Iron', 'Ferritin'
+      ];
+      
+      // Tests that need 1 decimal place
+      const oneDecimalTests = [
+        'Hemoglobin', 'Hematocrit', 'MCV', 'MCH', 'MCHC', 'HbA1c',
+        'Total Protein', 'Albumin', 'Globulin', 'Bilirubin Total', 'Bilirubin Direct',
+        'Creatinine'
+      ];
+      
+      // Tests that need 2 decimal places
+      const twoDecimalTests = [
+        'TSH', 'T3', 'T4', 'Free T3', 'Free T4', 'Vitamin D', 'Vitamin B12',
+        'Folate', 'eGFR', 'Insulin'
+      ];
+      
+      if (integerTests.includes(testName)) {
+        return Math.round(value);
+      } else if (oneDecimalTests.includes(testName)) {
+        return Math.round(value * 10) / 10;
+      } else if (twoDecimalTests.includes(testName)) {
+        return Math.round(value * 100) / 100;
+      }
+      
+      // Default: 2 decimal places for unknown tests
+      return Math.round(value * 100) / 100;
+    };
+
     // Transform to LabRow format with panel assignment
     const panelMap: Record<string, string> = {
       'Total Cholesterol': 'Lipid Profile',
@@ -169,12 +207,27 @@ serve(async (req) => {
     };
 
     const labRows = labData.map((item: any, index: number) => {
-      const value = typeof item.value === 'number' ? item.value : parseFloat(item.value);
-      const refLow = item.refLow != null ? (typeof item.refLow === 'number' ? item.refLow : parseFloat(item.refLow)) : null;
-      const refHigh = item.refHigh != null ? (typeof item.refHigh === 'number' ? item.refHigh : parseFloat(item.refHigh)) : null;
+      const rawValue = typeof item.value === 'number' ? item.value : parseFloat(item.value);
+      const rawRefLow = item.refLow != null ? (typeof item.refLow === 'number' ? item.refLow : parseFloat(item.refLow)) : null;
+      const rawRefHigh = item.refHigh != null ? (typeof item.refHigh === 'number' ? item.refHigh : parseFloat(item.refHigh)) : null;
+      
+      // Standardize values to consistent decimal places
+      const value = !isNaN(rawValue) ? standardizeValue(rawValue, item.testName) : null;
+      const refLow = rawRefLow != null && !isNaN(rawRefLow) ? standardizeValue(rawRefLow, item.testName) : null;
+      const refHigh = rawRefHigh != null && !isNaN(rawRefHigh) ? standardizeValue(rawRefHigh, item.testName) : null;
+      
+      // Build refRaw string
+      let refRaw = '';
+      if (refLow != null && refHigh != null) {
+        refRaw = `${refLow} - ${refHigh}`;
+      } else if (refHigh != null) {
+        refRaw = `< ${refHigh}`;
+      } else if (refLow != null) {
+        refRaw = `> ${refLow}`;
+      }
       
       let flag: 'normal' | 'low' | 'high' | 'critical' = 'normal';
-      if (value != null && !isNaN(value)) {
+      if (value != null) {
         if (refLow != null && value < refLow) {
           flag = value < refLow * 0.8 ? 'critical' : 'low';
         } else if (refHigh != null && value > refHigh) {
@@ -186,10 +239,13 @@ serve(async (req) => {
         id: `${reportId}-${index}`,
         reportId,
         testName: item.testName,
-        value: isNaN(value) ? null : value,
+        canonicalName: item.testName,
+        value,
+        valueRaw: String(item.value),
         unit: item.unit || '',
-        refLow: refLow != null && !isNaN(refLow) ? refLow : null,
-        refHigh: refHigh != null && !isNaN(refHigh) ? refHigh : null,
+        refLow,
+        refHigh,
+        refRaw,
         flag,
         panel: panelMap[item.testName] || 'Other',
       };
