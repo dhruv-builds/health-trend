@@ -66,10 +66,10 @@ export function DropZone({ onFilesSelected, disabled }: DropZoneProps) {
       
       <div className="space-y-2">
         <h3 className="text-lg font-semibold text-foreground">
-          {isDragging ? 'Drop your PDFs here' : 'Upload Lab Reports'}
+          {isDragging ? 'Drop your PDFs here' : 'Upload Blood Reports'}
         </h3>
         <p className="text-sm text-muted-foreground max-w-sm">
-          Drag and drop your lab report PDFs, or click to browse. 
+          Drag and drop your blood report PDFs, or click to browse. 
           We'll extract your markers and show trends.
         </p>
       </div>
