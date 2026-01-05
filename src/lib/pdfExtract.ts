@@ -44,6 +44,12 @@ const LAB_PATTERNS = [
 const PATIENT_PATTERNS = [
   /(?:Patient\s+Name|Name)[:\s]+([A-Za-z\s]+?)(?:\n|Age|Gender|DOB|$)/i,
   /(?:Mr\.|Mrs\.|Ms\.)\s+([A-Za-z\s]+?)(?:\n|,|Age|$)/i,
+  // "Patient: John Doe" or "Patient : John Doe"
+  /Patient\s*[:\-]\s*([A-Za-z\s]+?)(?:\n|,|Age|Gender|DOB|Ref|$)/i,
+  // "Name : John Doe"
+  /\bName\s*[:\-]\s*([A-Za-z\s]+?)(?:\n|,|Age|Gender|DOB|Ref|$)/i,
+  // "Client: John Doe"
+  /(?:Client|Customer)\s*[:\-]\s*([A-Za-z\s]+?)(?:\n|,|$)/i,
 ];
 
 function parseDate(dateStr: string): Date | null {
