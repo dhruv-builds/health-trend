@@ -1,14 +1,22 @@
+import { useState } from 'react';
 import { format } from 'date-fns';
-import { TrendingUp, TrendingDown, Minus, AlertTriangle, AlertCircle } from 'lucide-react';
-import { TrendData } from '@/lib/types';
+import { TrendingUp, TrendingDown, Minus, AlertTriangle, AlertCircle, Sparkles, Loader2 } from 'lucide-react';
+import { TrendData, MarkerInsight } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { LineChart, Line, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { Button } from '@/components/ui/button';
+import { useMarkerInsights } from '@/hooks/useMarkerInsights';
+import { MarkerInsightsPanel } from './MarkerInsightsPanel';
 
 interface MarkerCardProps {
   trend: TrendData;
 }
 
 export function MarkerCard({ trend }: MarkerCardProps) {
+  const [insight, setInsight] = useState<MarkerInsight | null>(null);
+  const [showInsights, setShowInsights] = useState(false);
+  const { getInsights, isLoading, error } = useMarkerInsights();
+
   const {
     canonicalName,
     panel,
@@ -26,6 +34,19 @@ export function MarkerCard({ trend }: MarkerCardProps) {
     date: dp.date.getTime(),
     value: dp.value,
   }));
+
+  const handleGetInsights = async () => {
+    if (insight) {
+      setShowInsights(!showInsights);
+      return;
+    }
+
+    const result = await getInsights(trend);
+    if (result) {
+      setInsight(result);
+      setShowInsights(true);
+    }
+  };
 
   const getStatusStyles = () => {
     switch (status) {
@@ -173,6 +194,37 @@ export function MarkerCard({ trend }: MarkerCardProps) {
               <span>{format(dataPoints[dataPoints.length - 1].date, 'MMM yyyy')}</span>
             )}
           </>
+        )}
+      </div>
+
+      {/* AI Insights Button */}
+      <div className="mt-3 pt-3 border-t border-border/30">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full gap-2 text-xs"
+          onClick={handleGetInsights}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="w-3 h-3 animate-spin" />
+              Getting insights...
+            </>
+          ) : (
+            <>
+              <Sparkles className="w-3 h-3" />
+              {insight ? (showInsights ? 'Hide insights' : 'Show insights') : 'Get AI insights'}
+            </>
+          )}
+        </Button>
+
+        {error && (
+          <p className="text-xs text-destructive text-center mt-2">{error}</p>
+        )}
+
+        {showInsights && insight && (
+          <MarkerInsightsPanel insight={insight} />
         )}
       </div>
     </div>

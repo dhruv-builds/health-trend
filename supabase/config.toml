@@ -2,3 +2,6 @@ project_id = "uzvfuiurjtheabwdatah"
 
 [functions.standardize-labs]
 verify_jwt = false
+
+[functions.marker-insights]
+verify_jwt = false
