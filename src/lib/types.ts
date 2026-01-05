@@ -1,4 +1,4 @@
-// Core data types for LabTrend
+// Core data types for HealthTrend
 
 export interface LabRow {
   id: string;

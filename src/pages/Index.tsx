@@ -29,7 +29,7 @@ const Index = () => {
               <Activity className="w-6 h-6 text-primary" />
             </div>
             <h1 className="text-2xl md:text-3xl font-bold text-foreground font-display">
-              LabTrend
+              HealthTrend
             </h1>
           </div>
           <p className="text-muted-foreground max-w-xl">
@@ -95,7 +95,7 @@ const Index = () => {
       <footer className="border-t bg-card/30 py-6 mt-12">
         <div className="container max-w-6xl px-4">
           <p className="text-sm text-muted-foreground text-center">
-            LabTrend — Your lab data stays private. No accounts, no servers, no storage.
+            HealthTrend — Your lab data stays private. No accounts, no servers, no storage.
           </p>
         </div>
       </footer>
