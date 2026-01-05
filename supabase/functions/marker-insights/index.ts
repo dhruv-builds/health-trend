@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -37,40 +36,6 @@ interface MarkerData {
 }
 
 const VALID_STATUSES = ['out_of_range', 'worsening', 'stable', 'improving'];
-
-// Validate and authenticate request
-async function authenticateRequest(req: Request): Promise<{ user: any; error: Response | null }> {
-  const authHeader = req.headers.get('Authorization');
-  if (!authHeader) {
-    return {
-      user: null,
-      error: new Response(
-        JSON.stringify({ error: 'Missing authorization header' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    };
-  }
-
-  const supabaseClient = createClient(
-    Deno.env.get('SUPABASE_URL') ?? '',
-    Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-    { global: { headers: { Authorization: authHeader } } }
-  );
-
-  const { data: { user }, error } = await supabaseClient.auth.getUser();
-  
-  if (error || !user) {
-    return {
-      user: null,
-      error: new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    };
-  }
-
-  return { user, error: null };
-}
 
 // Validate marker data structure
 function validateMarkerData(marker: any): { valid: boolean; error?: string } {
@@ -130,12 +95,6 @@ serve(async (req) => {
   }
 
   try {
-    // Authenticate request
-    const { user, error: authError } = await authenticateRequest(req);
-    if (authError) {
-      return authError;
-    }
-
     const { marker } = await req.json() as { marker: MarkerData };
 
     // Validate marker data
@@ -183,7 +142,7 @@ ${trendInfo}
 
 Please provide insights about this lab result.`;
 
-    console.log(`User ${user.id} requesting insights for: ${marker.canonicalName}`);
+    console.log(`Requesting insights for: ${marker.canonicalName}`);
 
     const response = await fetch('https://api.perplexity.ai/chat/completions', {
       method: 'POST',
