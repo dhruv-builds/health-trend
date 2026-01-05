@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -35,6 +36,93 @@ interface MarkerData {
   changePercent: number | null;
 }
 
+const VALID_STATUSES = ['out_of_range', 'worsening', 'stable', 'improving'];
+
+// Validate and authenticate request
+async function authenticateRequest(req: Request): Promise<{ user: any; error: Response | null }> {
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader) {
+    return {
+      user: null,
+      error: new Response(
+        JSON.stringify({ error: 'Missing authorization header' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    };
+  }
+
+  const supabaseClient = createClient(
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+    { global: { headers: { Authorization: authHeader } } }
+  );
+
+  const { data: { user }, error } = await supabaseClient.auth.getUser();
+  
+  if (error || !user) {
+    return {
+      user: null,
+      error: new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    };
+  }
+
+  return { user, error: null };
+}
+
+// Validate marker data structure
+function validateMarkerData(marker: any): { valid: boolean; error?: string } {
+  if (!marker || typeof marker !== 'object') {
+    return { valid: false, error: 'Invalid marker data' };
+  }
+
+  if (!marker.canonicalName || typeof marker.canonicalName !== 'string') {
+    return { valid: false, error: 'Missing or invalid canonicalName' };
+  }
+
+  // Validate canonicalName length and format (allow letters, numbers, spaces, hyphens, slashes)
+  if (marker.canonicalName.length > 200 || !/^[a-zA-Z0-9\s\/-]+$/.test(marker.canonicalName)) {
+    return { valid: false, error: 'Invalid marker name format' };
+  }
+
+  if (typeof marker.currentValue !== 'number' || isNaN(marker.currentValue)) {
+    return { valid: false, error: 'Invalid currentValue: must be a number' };
+  }
+
+  if (!marker.unit || typeof marker.unit !== 'string') {
+    return { valid: false, error: 'Missing or invalid unit' };
+  }
+
+  if (marker.unit.length > 50) {
+    return { valid: false, error: 'Unit too long' };
+  }
+
+  if (!VALID_STATUSES.includes(marker.status)) {
+    return { valid: false, error: `Invalid status: must be one of ${VALID_STATUSES.join(', ')}` };
+  }
+
+  // Optional fields validation
+  if (marker.previousValue !== null && (typeof marker.previousValue !== 'number' || isNaN(marker.previousValue))) {
+    return { valid: false, error: 'Invalid previousValue: must be a number or null' };
+  }
+
+  if (marker.refLow !== null && (typeof marker.refLow !== 'number' || isNaN(marker.refLow))) {
+    return { valid: false, error: 'Invalid refLow: must be a number or null' };
+  }
+
+  if (marker.refHigh !== null && (typeof marker.refHigh !== 'number' || isNaN(marker.refHigh))) {
+    return { valid: false, error: 'Invalid refHigh: must be a number or null' };
+  }
+
+  if (marker.changePercent !== null && (typeof marker.changePercent !== 'number' || isNaN(marker.changePercent))) {
+    return { valid: false, error: 'Invalid changePercent: must be a number or null' };
+  }
+
+  return { valid: true };
+}
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -42,11 +130,19 @@ serve(async (req) => {
   }
 
   try {
+    // Authenticate request
+    const { user, error: authError } = await authenticateRequest(req);
+    if (authError) {
+      return authError;
+    }
+
     const { marker } = await req.json() as { marker: MarkerData };
 
-    if (!marker || !marker.canonicalName) {
+    // Validate marker data
+    const validation = validateMarkerData(marker);
+    if (!validation.valid) {
       return new Response(
-        JSON.stringify({ error: 'Missing marker data' }),
+        JSON.stringify({ error: validation.error }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -87,7 +183,7 @@ ${trendInfo}
 
 Please provide insights about this lab result.`;
 
-    console.log('Requesting insights for:', marker.canonicalName);
+    console.log(`User ${user.id} requesting insights for: ${marker.canonicalName}`);
 
     const response = await fetch('https://api.perplexity.ai/chat/completions', {
       method: 'POST',
