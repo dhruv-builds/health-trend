@@ -132,7 +132,7 @@ export function MarkerSections({ outOfRange, worsening, other }: MarkerSectionsP
           {showOther && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 animate-fade-in">
               {filteredOther.map(trend => (
-                <MarkerCard key={trend.canonicalName} trend={trend} />
+                <MarkerCard key={trend.canonicalName} trend={trend} showAIInsights={false} />
               ))}
             </div>
           )}

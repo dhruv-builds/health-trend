@@ -10,9 +10,10 @@ import { MarkerInsightsPanel } from './MarkerInsightsPanel';
 
 interface MarkerCardProps {
   trend: TrendData;
+  showAIInsights?: boolean;
 }
 
-export function MarkerCard({ trend }: MarkerCardProps) {
+export function MarkerCard({ trend, showAIInsights = true }: MarkerCardProps) {
   const [insight, setInsight] = useState<MarkerInsight | null>(null);
   const [showInsights, setShowInsights] = useState(false);
   const { getInsights, isLoading, error } = useMarkerInsights();
@@ -198,35 +199,37 @@ export function MarkerCard({ trend }: MarkerCardProps) {
       </div>
 
       {/* AI Insights Button */}
-      <div className="mt-3 pt-3 border-t border-border/30">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-full gap-2 text-xs"
-          onClick={handleGetInsights}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="w-3 h-3 animate-spin" />
-              Getting insights...
-            </>
-          ) : (
-            <>
-              <Sparkles className="w-3 h-3" />
-              {insight ? (showInsights ? 'Hide insights' : 'Show insights') : 'Get AI insights'}
-            </>
+      {showAIInsights && (
+        <div className="mt-3 pt-3 border-t border-border/30">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full gap-2 text-xs"
+            onClick={handleGetInsights}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="w-3 h-3 animate-spin" />
+                Getting insights...
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-3 h-3" />
+                {insight ? (showInsights ? 'Hide insights' : 'Show insights') : 'Get AI insights'}
+              </>
+            )}
+          </Button>
+
+          {error && (
+            <p className="text-xs text-destructive text-center mt-2">{error}</p>
           )}
-        </Button>
 
-        {error && (
-          <p className="text-xs text-destructive text-center mt-2">{error}</p>
-        )}
-
-        {showInsights && insight && (
-          <MarkerInsightsPanel insight={insight} />
-        )}
-      </div>
+          {showInsights && insight && (
+            <MarkerInsightsPanel insight={insight} />
+          )}
+        </div>
+      )}
     </div>
   );
 }
