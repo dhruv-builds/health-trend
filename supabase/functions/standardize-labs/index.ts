@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -25,39 +24,6 @@ Example output:
   {"testName": "Glucose Fasting", "value": 95, "unit": "mg/dL", "refLow": 70, "refHigh": 100}
 ]`;
 
-// Validate and authenticate request
-async function authenticateRequest(req: Request): Promise<{ user: any; error: Response | null }> {
-  const authHeader = req.headers.get('Authorization');
-  if (!authHeader) {
-    return {
-      user: null,
-      error: new Response(
-        JSON.stringify({ error: 'Missing authorization header' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    };
-  }
-
-  const supabaseClient = createClient(
-    Deno.env.get('SUPABASE_URL') ?? '',
-    Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-    { global: { headers: { Authorization: authHeader } } }
-  );
-
-  const { data: { user }, error } = await supabaseClient.auth.getUser();
-  
-  if (error || !user) {
-    return {
-      user: null,
-      error: new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    };
-  }
-
-  return { user, error: null };
-}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -65,12 +31,6 @@ serve(async (req) => {
   }
 
   try {
-    // Authenticate request
-    const { user, error: authError } = await authenticateRequest(req);
-    if (authError) {
-      return authError;
-    }
-
     const { text, reportId } = await req.json();
 
     // Input validation
@@ -106,7 +66,7 @@ serve(async (req) => {
       );
     }
 
-    console.log(`User ${user.id} processing report ${reportId}, text length: ${text.length}`);
+    console.log(`Processing report ${reportId}, text length: ${text.length}`);
 
     const response = await fetch('https://api.perplexity.ai/chat/completions', {
       method: 'POST',
