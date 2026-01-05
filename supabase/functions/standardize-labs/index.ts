@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -24,18 +25,75 @@ Example output:
   {"testName": "Glucose Fasting", "value": 95, "unit": "mg/dL", "refLow": 70, "refHigh": 100}
 ]`;
 
+// Validate and authenticate request
+async function authenticateRequest(req: Request): Promise<{ user: any; error: Response | null }> {
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader) {
+    return {
+      user: null,
+      error: new Response(
+        JSON.stringify({ error: 'Missing authorization header' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    };
+  }
+
+  const supabaseClient = createClient(
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+    { global: { headers: { Authorization: authHeader } } }
+  );
+
+  const { data: { user }, error } = await supabaseClient.auth.getUser();
+  
+  if (error || !user) {
+    return {
+      user: null,
+      error: new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    };
+  }
+
+  return { user, error: null };
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    // Authenticate request
+    const { user, error: authError } = await authenticateRequest(req);
+    if (authError) {
+      return authError;
+    }
+
     const { text, reportId } = await req.json();
 
+    // Input validation
     if (!text || !reportId) {
       console.error('Missing required fields: text or reportId');
       return new Response(
         JSON.stringify({ error: 'Missing required fields: text and reportId' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate text length (max 100KB)
+    if (typeof text !== 'string' || text.length === 0 || text.length > 100000) {
+      return new Response(
+        JSON.stringify({ error: 'Text must be a non-empty string under 100KB' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate reportId format (alphanumeric, hyphens, underscores only)
+    if (typeof reportId !== 'string' || !/^[a-zA-Z0-9_-]{1,100}$/.test(reportId)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid reportId format. Use alphanumeric characters, hyphens, and underscores only (max 100 chars)' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -48,7 +106,7 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Processing report ${reportId}, text length: ${text.length}`);
+    console.log(`User ${user.id} processing report ${reportId}, text length: ${text.length}`);
 
     const response = await fetch('https://api.perplexity.ai/chat/completions', {
       method: 'POST',
