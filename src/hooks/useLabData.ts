@@ -1,8 +1,36 @@
 import { useState, useCallback } from 'react';
-import { LabReport } from '@/lib/types';
+import { LabReport, LabRow } from '@/lib/types';
 import { extractTextFromPDF, hasExtractableText } from '@/lib/pdfExtract';
 import { parseLabText } from '@/lib/parseLabs';
 import { sampleReports } from '@/lib/sampleData';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+
+async function standardizeWithAI(text: string, reportId: string): Promise<LabRow[] | null> {
+  try {
+    const { data, error } = await supabase.functions.invoke('standardize-labs', {
+      body: { text, reportId }
+    });
+
+    if (error) {
+      console.error('AI standardization error:', error);
+      return null;
+    }
+
+    if (data?.error) {
+      console.error('AI processing error:', data.error);
+      if (data.error.includes('Rate limit')) {
+        toast.error('AI rate limit exceeded. Using fallback parser.');
+      }
+      return null;
+    }
+
+    return data?.labRows || null;
+  } catch (err) {
+    console.error('Failed to call standardize-labs:', err);
+    return null;
+  }
+}
 
 export function useLabData() {
   const [reports, setReports] = useState<LabReport[]>([]);
@@ -39,14 +67,23 @@ export function useLabData() {
         return;
       }
 
-      // Parse the extracted text
+      // Parse the extracted text - try AI first, fallback to regex
       setReports(prev => prev.map(r => 
         r.id === reportId 
           ? { ...r, status: 'parsing', extractedText: extraction.text }
           : r
       ));
 
-      const rows = parseLabText(extraction.text, reportId);
+      // Try AI-powered standardization first
+      let rows = await standardizeWithAI(extraction.text, reportId);
+      
+      // Fallback to regex parser if AI fails
+      if (!rows || rows.length === 0) {
+        console.log('AI parsing failed or returned no results, using fallback regex parser');
+        rows = parseLabText(extraction.text, reportId);
+      } else {
+        console.log(`AI successfully parsed ${rows.length} lab results`);
+      }
 
       // Update with parsed data
       setReports(prev => prev.map(r => 
