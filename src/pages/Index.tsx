@@ -1,11 +1,12 @@
 import { useMemo } from 'react';
-import { Activity, Shield, ArrowRight } from 'lucide-react';
+import { Activity, Shield } from 'lucide-react';
 import { useLabData } from '@/hooks/useLabData';
 import { calculateTrends, categorizeTrends } from '@/lib/trends';
 import { DropZone } from '@/components/upload/DropZone';
 import { ReportList } from '@/components/upload/ReportList';
 import { StatsBar } from '@/components/dashboard/StatsBar';
 import { MarkerSections } from '@/components/dashboard/MarkerSections';
+import { AnalyticsBanner } from '@/components/dashboard/AnalyticsBanner';
 
 const Index = () => {
   const { reports, isDemo, addReport, removeReport, updateReportDate } = useLabData();
@@ -62,17 +63,9 @@ const Index = () => {
           />
         </section>
 
-        {/* Demo Mode Banner */}
-        {isDemo && (
-          <div className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-secondary border border-border">
-            <span className="text-sm text-secondary-foreground">
-              Viewing sample data
-            </span>
-            <ArrowRight className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm font-medium text-foreground">
-              Upload your reports to see your trends
-            </span>
-          </div>
+        {/* Analytics Banner */}
+        {reports.length > 0 && (
+          <AnalyticsBanner reports={reports} isDemo={isDemo} />
         )}
 
         {/* Stats */}
