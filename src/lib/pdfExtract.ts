@@ -21,9 +21,13 @@ const DATE_PATTERNS = [
   /(?:Sample\s+Collected|Collected|Report\s+Date|Reported|Date)[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})/i,
   // "2023-12-22"
   /(?:Sample\s+Collected|Collected|Report\s+Date|Reported|Date)[:\s]+(\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2})/i,
+  // NEW: Handle "Reported P 10/12/2025" - allow single char between keyword and date
+  /(?:Reported|Collected|Date)[:\s]+\w?\s*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})/i,
   // Fallback patterns without prefix
   /(\d{1,2}[\/\-][A-Za-z]{3}[\/\-]\d{4})/i,
   /([A-Za-z]+\s+\d{1,2},?\s+\d{4})/i,
+  // NEW: Last resort - find any DD/MM/YYYY or MM/DD/YYYY pattern
+  /(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})/,
 ];
 
 // Lab name patterns

@@ -58,6 +58,9 @@ export function useLabData() {
       // Extract text from PDF
       const extraction = await extractTextFromPDF(file);
       
+      // Debug logging for date extraction
+      console.log(`[${file.name}] Extracted date: ${extraction.detectedDate}, lab: ${extraction.labName}`);
+      
       if (!hasExtractableText(extraction.text)) {
         setReports(prev => prev.map(r => 
           r.id === reportId 

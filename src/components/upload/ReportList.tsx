@@ -75,14 +75,19 @@ export function ReportList({ reports, isDemo, onRemove, onDateChange }: ReportLi
                 {report.labName && (
                   <span>{report.labName}</span>
                 )}
-                {report.labName && report.reportDate && <span>•</span>}
-                {report.reportDate && (
+                {report.labName && (report.reportDate || report.status === 'complete') && <span>•</span>}
+                {report.reportDate ? (
                   <span className="flex items-center gap-1">
                     <Calendar className="w-3 h-3" />
                     {format(report.reportDate, 'MMM d, yyyy')}
                   </span>
-                )}
-                {!report.labName && !report.reportDate && (
+                ) : report.status === 'complete' ? (
+                  <span className="flex items-center gap-1 text-warning">
+                    <AlertCircle className="w-3 h-3" />
+                    Date not detected
+                  </span>
+                ) : null}
+                {!report.labName && !report.reportDate && report.status !== 'complete' && (
                   <span>{getStatusText(report)}</span>
                 )}
               </div>
