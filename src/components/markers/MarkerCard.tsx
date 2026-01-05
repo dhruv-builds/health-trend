@@ -1,0 +1,180 @@
+import { format } from 'date-fns';
+import { TrendingUp, TrendingDown, Minus, AlertTriangle, AlertCircle } from 'lucide-react';
+import { TrendData } from '@/lib/types';
+import { cn } from '@/lib/utils';
+import { LineChart, Line, ResponsiveContainer, ReferenceLine } from 'recharts';
+
+interface MarkerCardProps {
+  trend: TrendData;
+}
+
+export function MarkerCard({ trend }: MarkerCardProps) {
+  const {
+    canonicalName,
+    panel,
+    unit,
+    dataPoints,
+    currentValue,
+    previousValue,
+    refLow,
+    refHigh,
+    status,
+    changePercent,
+  } = trend;
+
+  const chartData = dataPoints.map(dp => ({
+    date: dp.date.getTime(),
+    value: dp.value,
+  }));
+
+  const getStatusStyles = () => {
+    switch (status) {
+      case 'out_of_range':
+        return {
+          border: 'border-destructive/30',
+          bg: 'bg-destructive/5',
+          badge: 'bg-destructive text-destructive-foreground',
+          badgeText: 'Out of Range',
+          icon: AlertCircle,
+        };
+      case 'worsening':
+        return {
+          border: 'border-warning/30',
+          bg: 'bg-warning/5',
+          badge: 'bg-warning text-warning-foreground',
+          badgeText: 'Worsening',
+          icon: AlertTriangle,
+        };
+      case 'improving':
+        return {
+          border: 'border-success/30',
+          bg: 'bg-success/5',
+          badge: 'bg-success text-success-foreground',
+          badgeText: 'Improving',
+          icon: TrendingUp,
+        };
+      default:
+        return {
+          border: 'border-border',
+          bg: 'bg-card',
+          badge: 'bg-secondary text-secondary-foreground',
+          badgeText: 'Stable',
+          icon: Minus,
+        };
+    }
+  };
+
+  const styles = getStatusStyles();
+  const StatusIcon = styles.icon;
+
+  const getChangeIcon = () => {
+    if (changePercent === null || Math.abs(changePercent) < 1) {
+      return <Minus className="w-3 h-3" />;
+    }
+    return changePercent > 0 
+      ? <TrendingUp className="w-3 h-3" />
+      : <TrendingDown className="w-3 h-3" />;
+  };
+
+  const formatValue = (val: number) => {
+    if (val >= 10000) return val.toLocaleString();
+    if (Number.isInteger(val)) return val.toString();
+    return val.toFixed(1);
+  };
+
+  const getChartColor = () => {
+    switch (status) {
+      case 'out_of_range': return 'hsl(var(--destructive))';
+      case 'worsening': return 'hsl(var(--warning))';
+      case 'improving': return 'hsl(var(--success))';
+      default: return 'hsl(var(--primary))';
+    }
+  };
+
+  return (
+    <div className={cn(
+      'rounded-xl border p-4 transition-all hover:shadow-md',
+      styles.border,
+      styles.bg
+    )}>
+      {/* Header */}
+      <div className="flex items-start justify-between gap-2 mb-3">
+        <div>
+          <h3 className="font-semibold text-foreground leading-tight">{canonicalName}</h3>
+          <p className="text-xs text-muted-foreground">{panel}</p>
+        </div>
+        <span className={cn(
+          'flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium',
+          styles.badge
+        )}>
+          <StatusIcon className="w-3 h-3" />
+          {styles.badgeText}
+        </span>
+      </div>
+
+      {/* Values */}
+      <div className="flex items-baseline gap-2 mb-2">
+        <span className="text-2xl font-bold text-foreground">
+          {formatValue(currentValue)}
+        </span>
+        <span className="text-sm text-muted-foreground">{unit}</span>
+      </div>
+
+      {/* Previous value and change */}
+      {previousValue !== null && (
+        <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
+          <span>Previous: {formatValue(previousValue)}</span>
+          {changePercent !== null && (
+            <span className={cn(
+              'flex items-center gap-0.5',
+              changePercent > 5 ? 'text-warning' : changePercent < -5 ? 'text-success' : ''
+            )}>
+              {getChangeIcon()}
+              {Math.abs(changePercent).toFixed(1)}%
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Reference range */}
+      <div className="text-xs text-muted-foreground mb-3">
+        Normal range: {refLow !== null ? formatValue(refLow) : '—'} – {refHigh !== null ? formatValue(refHigh) : '—'} {unit}
+      </div>
+
+      {/* Sparkline */}
+      {dataPoints.length > 1 && (
+        <div className="h-12 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={chartData}>
+              {refLow !== null && (
+                <ReferenceLine y={refLow} stroke="hsl(var(--muted-foreground))" strokeDasharray="2 2" strokeOpacity={0.3} />
+              )}
+              {refHigh !== null && (
+                <ReferenceLine y={refHigh} stroke="hsl(var(--muted-foreground))" strokeDasharray="2 2" strokeOpacity={0.3} />
+              )}
+              <Line
+                type="monotone"
+                dataKey="value"
+                stroke={getChartColor()}
+                strokeWidth={2}
+                dot={{ fill: getChartColor(), r: 3 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Dates */}
+      <div className="flex justify-between text-xs text-muted-foreground mt-2">
+        {dataPoints.length > 0 && (
+          <>
+            <span>{format(dataPoints[0].date, 'MMM yyyy')}</span>
+            {dataPoints.length > 1 && (
+              <span>{format(dataPoints[dataPoints.length - 1].date, 'MMM yyyy')}</span>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
