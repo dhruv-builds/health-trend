@@ -88,6 +88,19 @@ export function useLabData() {
         console.log(`AI successfully parsed ${rows.length} lab results`);
       }
 
+      // Check if any markers were detected
+      if (!rows || rows.length === 0) {
+        toast.error('No lab markers detected in this file. Please upload a valid blood report.');
+        setReports(prev => {
+          const newReports = prev.filter(r => r.id !== reportId);
+          if (newReports.length === 0) {
+            setIsDemo(true);
+          }
+          return newReports;
+        });
+        return;
+      }
+
       // Update with parsed data
       setReports(prev => prev.map(r => 
         r.id === reportId 
