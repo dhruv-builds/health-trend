@@ -34,12 +34,10 @@ export const AnalyticsBanner = ({ reports, isDemo }: AnalyticsBannerProps) => {
   
   // Build the message
   const buildMessage = (): React.ReactNode => {
-    const demoLabel = isDemo ? <span className="underline">demo</span> : null;
-    
     if (patientName && formattedDates) {
       return (
         <>
-          Viewing {demoLabel}{demoLabel && ' '}analytics for <strong className="text-foreground">{patientName}</strong> for{' '}
+          Viewing analytics for <strong className="text-foreground">{patientName}</strong> for{' '}
           <strong className="text-foreground">{formattedDates}</strong>
         </>
       );
@@ -47,18 +45,18 @@ export const AnalyticsBanner = ({ reports, isDemo }: AnalyticsBannerProps) => {
     if (patientName) {
       return (
         <>
-          Viewing {demoLabel}{demoLabel && ' '}analytics for <strong className="text-foreground">{patientName}</strong>
+          Viewing analytics for <strong className="text-foreground">{patientName}</strong>
         </>
       );
     }
     if (formattedDates) {
       return (
         <>
-          Viewing {demoLabel}{demoLabel && ' '}analytics for reports from <strong className="text-foreground">{formattedDates}</strong>
+          Viewing analytics for reports from <strong className="text-foreground">{formattedDates}</strong>
         </>
       );
     }
-    return <>Viewing {demoLabel}{demoLabel && ' '}analytics for your uploaded reports</>;
+    return 'Viewing analytics for your uploaded reports';
   };
 
   return (
