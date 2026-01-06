@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { TrendingUp, TrendingDown, Minus, AlertTriangle, AlertCircle, Sparkles, Loader2 } from 'lucide-react';
 import { TrendData, MarkerInsight } from '@/lib/types';
@@ -7,6 +7,7 @@ import { LineChart, Line, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { Button } from '@/components/ui/button';
 import { useMarkerInsights } from '@/hooks/useMarkerInsights';
 import { MarkerInsightsPanel } from './MarkerInsightsPanel';
+import { useInsightsContext } from '@/contexts/InsightsContext';
 
 interface MarkerCardProps {
   trend: TrendData;
@@ -14,9 +15,12 @@ interface MarkerCardProps {
 }
 
 export function MarkerCard({ trend, showAIInsights = true }: MarkerCardProps) {
-  const [insight, setInsight] = useState<MarkerInsight | null>(null);
   const [showInsights, setShowInsights] = useState(false);
   const { getInsights, isLoading, error } = useMarkerInsights();
+  const { getInsight, setInsight: setContextInsight } = useInsightsContext();
+  
+  // Get insight from context
+  const insight = getInsight(trend.canonicalName) || null;
 
   const {
     canonicalName,
@@ -44,7 +48,7 @@ export function MarkerCard({ trend, showAIInsights = true }: MarkerCardProps) {
 
     const result = await getInsights(trend);
     if (result) {
-      setInsight(result);
+      setContextInsight(trend.canonicalName, result);
       setShowInsights(true);
     }
   };

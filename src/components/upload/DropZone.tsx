@@ -45,6 +45,7 @@ export function DropZone({ onFilesSelected, disabled }: DropZoneProps) {
 
   return (
     <div
+      data-dropzone
       className={cn(
         'relative rounded-xl border-2 border-dashed p-8 transition-all duration-200',
         'flex flex-col items-center justify-center gap-4 text-center',
