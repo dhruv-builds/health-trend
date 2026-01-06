@@ -94,9 +94,25 @@ function determineStatus(
   // If no previous value, consider stable
   if (previous === null || changePercent === null) return 'stable';
 
+  // Calculate proximity to boundaries (10% decile)
+  let isInProximityZone = false;
+  if (refLow !== null && refHigh !== null) {
+    const range = refHigh - refLow;
+    const dangerZoneSize = range * 0.10; // 10% of range
+    const isNearLowBoundary = current <= refLow + dangerZoneSize;
+    const isNearHighBoundary = current >= refHigh - dangerZoneSize;
+    isInProximityZone = isNearLowBoundary || isNearHighBoundary;
+  }
+
   // Check for worsening trend (moving toward boundary)
+  let trendIsWorsening = false;
+  
   const isWorseningTowardLow = refLow !== null && changePercent < -5 && current < previous;
   const isWorseningTowardHigh = refHigh !== null && changePercent > 5 && current > previous;
+  
+  if (isWorseningTowardLow || isWorseningTowardHigh) {
+    trendIsWorsening = true;
+  }
 
   // Also check if getting significantly closer to boundary
   if (refLow !== null && refHigh !== null) {
@@ -107,14 +123,17 @@ function determineStatus(
 
     // If distance to boundary reduced by more than 20%, consider worsening
     if (prevDistanceToLow > 0 && currDistanceToLow > 0) {
-      if (currDistanceToLow < prevDistanceToLow * 0.8) return 'worsening';
+      if (currDistanceToLow < prevDistanceToLow * 0.8) trendIsWorsening = true;
     }
     if (prevDistanceToHigh > 0 && currDistanceToHigh > 0) {
-      if (currDistanceToHigh < prevDistanceToHigh * 0.8) return 'worsening';
+      if (currDistanceToHigh < prevDistanceToHigh * 0.8) trendIsWorsening = true;
     }
   }
 
-  if (isWorseningTowardLow || isWorseningTowardHigh) return 'worsening';
+  // Apply AND logic - both conditions required for worsening
+  if (trendIsWorsening && isInProximityZone) {
+    return 'worsening';
+  }
 
   // Check for improving trend (moving away from boundary)
   if (changePercent !== null) {
