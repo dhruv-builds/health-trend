@@ -118,11 +118,15 @@ export function MarkerCard({ trend, showAIInsights = true }: MarkerCardProps) {
   };
 
   return (
-    <div className={cn(
-      'rounded-xl border p-4 transition-all hover:shadow-md',
-      styles.border,
-      styles.bg
-    )}>
+    <div 
+      className={cn(
+        'rounded-xl border p-4 transition-all hover:shadow-md',
+        styles.border,
+        styles.bg,
+        showAIInsights && 'cursor-pointer'
+      )}
+      onClick={showAIInsights ? handleGetInsights : undefined}
+    >
       {/* Header */}
       <div className="flex items-start justify-between gap-2 mb-3">
         <div>
@@ -209,7 +213,10 @@ export function MarkerCard({ trend, showAIInsights = true }: MarkerCardProps) {
             variant="ghost"
             size="sm"
             className="w-full gap-2 text-xs"
-            onClick={handleGetInsights}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleGetInsights();
+            }}
             disabled={isLoading}
           >
             {isLoading ? (
