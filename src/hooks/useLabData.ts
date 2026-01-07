@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { LabReport, LabRow } from '@/lib/types';
+import { LabReport, LabRow, ActiveDataset } from '@/lib/types';
 import { extractTextFromPDF, hasExtractableText } from '@/lib/pdfExtract';
 import { parseLabText } from '@/lib/parseLabs';
 import { sampleReports } from '@/lib/sampleData';
@@ -34,7 +34,7 @@ async function standardizeWithAI(text: string, reportId: string): Promise<LabRow
 
 export function useLabData() {
   const [reports, setReports] = useState<LabReport[]>([]);
-  const [isDemo, setIsDemo] = useState(true);
+  const [activeDataset, setActiveDataset] = useState<ActiveDataset>('public_dhruv');
 
   const addReport = useCallback(async (file: File) => {
     const reportId = `report-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -52,7 +52,7 @@ export function useLabData() {
     };
 
     setReports(prev => [...prev, newReport]);
-    setIsDemo(false);
+    setActiveDataset('user_upload');
 
     try {
       // Extract text from PDF
@@ -94,7 +94,7 @@ export function useLabData() {
         setReports(prev => {
           const newReports = prev.filter(r => r.id !== reportId);
           if (newReports.length === 0) {
-            setIsDemo(true);
+            setActiveDataset('public_dhruv');
           }
           return newReports;
         });
@@ -127,7 +127,7 @@ export function useLabData() {
     setReports(prev => {
       const newReports = prev.filter(r => r.id !== reportId);
       if (newReports.length === 0) {
-        setIsDemo(true);
+        setActiveDataset('public_dhruv');
       }
       return newReports;
     });
@@ -141,18 +141,24 @@ export function useLabData() {
 
   const clearAllReports = useCallback(() => {
     setReports([]);
-    setIsDemo(true);
+    setActiveDataset('public_dhruv');
   }, []);
 
-  // Return demo data if no reports uploaded
-  const activeReports = isDemo ? sampleReports : reports;
+  const showPublicExample = useCallback(() => {
+    setReports([]);
+    setActiveDataset('public_dhruv');
+  }, []);
+
+  // Return public example data if activeDataset is public_dhruv
+  const activeReports = activeDataset === 'public_dhruv' ? sampleReports : reports;
 
   return {
     reports: activeReports,
-    isDemo,
+    activeDataset,
     addReport,
     removeReport,
     updateReportDate,
     clearAllReports,
+    showPublicExample,
   };
 }

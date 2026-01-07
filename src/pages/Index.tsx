@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { Activity, Shield } from 'lucide-react';
+import { useMemo, useState, useRef } from 'react';
+import { Activity, Shield, Upload } from 'lucide-react';
 import { useLabData } from '@/hooks/useLabData';
 import { calculateTrends, categorizeTrends } from '@/lib/trends';
 import { DropZone } from '@/components/upload/DropZone';
@@ -20,9 +20,10 @@ import {
 import { toast } from 'sonner';
 
 const IndexContent = () => {
-  const { reports, isDemo, addReport, removeReport, updateReportDate, clearAllReports } = useLabData();
+  const { reports, activeDataset, addReport, removeReport, updateReportDate, clearAllReports, showPublicExample } = useLabData();
   const { clearInsights } = useInsightsContext();
   const [showHowItWorks, setShowHowItWorks] = useState(false);
+  const dropzoneRef = useRef<HTMLDivElement>(null);
 
   const handleFilesSelected = async (files: File[]) => {
     for (const file of files) {
@@ -39,6 +40,22 @@ const IndexContent = () => {
     setShowHowItWorks(false);
     toast.success('All data cleared from this browser');
   };
+
+  const handleUploadClick = () => {
+    dropzoneRef.current?.scrollIntoView({ behavior: 'smooth' });
+    setTimeout(() => {
+      const fileInput = dropzoneRef.current?.querySelector('input[type="file"]') as HTMLInputElement;
+      fileInput?.click();
+    }, 500);
+  };
+
+  const handleSwitchBack = () => {
+    clearAllReports();
+    clearInsights();
+    showPublicExample();
+  };
+
+  const isPublicExample = activeDataset === 'public_dhruv';
 
   return (
     <>
@@ -109,6 +126,28 @@ const IndexContent = () => {
           </div>
         </header>
 
+        {/* Public Example Banner */}
+        {isPublicExample && (
+          <div className="sticky top-0 z-10 bg-amber-50 dark:bg-amber-950/30 border-b border-amber-200 dark:border-amber-800">
+            <div className="container max-w-6xl py-3 px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <p className="text-sm text-amber-800 dark:text-amber-200">
+                <strong>Viewing Dhruv's public example</strong> (real lab reports). 
+                Upload yours to see your results.
+              </p>
+              <div className="flex items-center gap-3">
+                <Button 
+                  onClick={handleUploadClick}
+                  size="sm"
+                  className="gap-2"
+                >
+                  <Upload className="w-4 h-4" />
+                  Upload your report
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <main className="container max-w-6xl py-8 px-4 space-y-8">
           {/* Medical Disclaimer */}
           <div className="flex items-start gap-3 p-4 rounded-xl bg-accent/50 border border-accent">
@@ -123,10 +162,12 @@ const IndexContent = () => {
 
           {/* Upload Section */}
           <section className="grid md:grid-cols-2 gap-6">
-            <DropZone onFilesSelected={handleFilesSelected} />
+            <div ref={dropzoneRef}>
+              <DropZone onFilesSelected={handleFilesSelected} />
+            </div>
             <ReportList 
               reports={reports}
-              isDemo={isDemo}
+              activeDataset={activeDataset}
               onRemove={removeReport}
               onDateChange={updateReportDate}
             />
@@ -135,11 +176,11 @@ const IndexContent = () => {
           {/* Analytics Banner with Export Button */}
           {reports.length > 0 && (
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <AnalyticsBanner reports={reports} isDemo={isDemo} />
+              <AnalyticsBanner reports={reports} activeDataset={activeDataset} />
               <div className="flex flex-col items-end gap-1">
                 <ExportButton 
                   reports={reports}
-                  isDemo={isDemo}
+                  isDemo={isPublicExample}
                   outOfRange={outOfRange}
                   worsening={worsening}
                   other={other}

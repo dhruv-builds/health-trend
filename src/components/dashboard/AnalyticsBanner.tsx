@@ -1,13 +1,15 @@
 import { format } from 'date-fns';
-import { ArrowRight, User } from 'lucide-react';
-import { LabReport } from '@/lib/types';
+import { User } from 'lucide-react';
+import { LabReport, ActiveDataset } from '@/lib/types';
 
 interface AnalyticsBannerProps {
   reports: LabReport[];
-  isDemo: boolean;
+  activeDataset: ActiveDataset;
 }
 
-export const AnalyticsBanner = ({ reports, isDemo }: AnalyticsBannerProps) => {
+export const AnalyticsBanner = ({ reports, activeDataset }: AnalyticsBannerProps) => {
+  const isPublicExample = activeDataset === 'public_dhruv';
+  
   // Get the first non-empty patient name
   const patientName = reports.find(r => r.patientName?.trim())?.patientName?.trim() || '';
   
@@ -34,6 +36,18 @@ export const AnalyticsBanner = ({ reports, isDemo }: AnalyticsBannerProps) => {
   
   // Build the message
   const buildMessage = (): React.ReactNode => {
+    if (isPublicExample) {
+      return (
+        <>
+          Viewing analytics for <strong className="text-foreground">Dhruv</strong>{' '}
+          <span className="text-amber-600 dark:text-amber-400">(public example)</span>
+          {formattedDates && (
+            <> — <strong className="text-foreground">{formattedDates}</strong></>
+          )}
+        </>
+      );
+    }
+    
     if (patientName && formattedDates) {
       return (
         <>
@@ -60,21 +74,11 @@ export const AnalyticsBanner = ({ reports, isDemo }: AnalyticsBannerProps) => {
   };
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-center gap-2 py-3 px-4 rounded-xl bg-secondary border border-border">
-      <div className="flex items-center gap-2">
-        <User className="w-4 h-4 text-muted-foreground" />
-        <span className="text-sm text-secondary-foreground">
-          {buildMessage()}
-        </span>
-      </div>
-      {isDemo && (
-        <>
-          <ArrowRight className="w-4 h-4 text-muted-foreground hidden sm:block" />
-          <span className="text-sm font-medium text-foreground">
-            Upload your reports to see your trends
-          </span>
-        </>
-      )}
+    <div className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-secondary border border-border">
+      <User className="w-4 h-4 text-muted-foreground" />
+      <span className="text-sm text-secondary-foreground">
+        {buildMessage()}
+      </span>
     </div>
   );
 };
