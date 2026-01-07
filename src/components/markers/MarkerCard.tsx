@@ -55,8 +55,8 @@ export function MarkerCard({ trend, showAIInsights = true }: MarkerCardProps) {
   };
 
   const getStatusStyles = () => {
-    // If unit variance detected AND status is improving/stable, show neutral "Within Range"
-    if (hasUnitVariance && (status === 'improving' || status === 'stable')) {
+    // If unit variance detected, show neutral styling
+    if (hasUnitVariance && status === 'stable') {
       return {
         border: 'border-border',
         bg: 'bg-card',
@@ -83,20 +83,12 @@ export function MarkerCard({ trend, showAIInsights = true }: MarkerCardProps) {
           badgeText: 'Worsening',
           icon: AlertTriangle,
         };
-      case 'improving':
-        return {
-          border: 'border-success/30',
-          bg: 'bg-success/5',
-          badge: 'bg-success text-success-foreground',
-          badgeText: 'Improving',
-          icon: TrendingUp,
-        };
       default:
         return {
           border: 'border-border',
           bg: 'bg-card',
           badge: 'bg-secondary text-secondary-foreground',
-          badgeText: 'Stable',
+          badgeText: 'Within Range',
           icon: Minus,
         };
     }
@@ -124,7 +116,6 @@ export function MarkerCard({ trend, showAIInsights = true }: MarkerCardProps) {
     switch (status) {
       case 'out_of_range': return 'hsl(var(--destructive))';
       case 'worsening': return 'hsl(var(--warning))';
-      case 'improving': return 'hsl(var(--success))';
       default: return 'hsl(var(--primary))';
     }
   };
