@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Activity, Shield } from 'lucide-react';
 import { useLabData } from '@/hooks/useLabData';
 import { calculateTrends, categorizeTrends } from '@/lib/trends';
@@ -8,10 +8,21 @@ import { StatsBar } from '@/components/dashboard/StatsBar';
 import { MarkerSections } from '@/components/dashboard/MarkerSections';
 import { AnalyticsBanner } from '@/components/dashboard/AnalyticsBanner';
 import { ExportButton } from '@/components/dashboard/ExportButton';
-import { InsightsProvider } from '@/contexts/InsightsContext';
+import { InsightsProvider, useInsightsContext } from '@/contexts/InsightsContext';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { toast } from 'sonner';
 
-const Index = () => {
-  const { reports, isDemo, addReport, removeReport, updateReportDate } = useLabData();
+const IndexContent = () => {
+  const { reports, isDemo, addReport, removeReport, updateReportDate, clearAllReports } = useLabData();
+  const { clearInsights } = useInsightsContext();
+  const [showHowItWorks, setShowHowItWorks] = useState(false);
 
   const handleFilesSelected = async (files: File[]) => {
     for (const file of files) {
@@ -22,8 +33,57 @@ const Index = () => {
   const trends = useMemo(() => calculateTrends(reports), [reports]);
   const { outOfRange, worsening, other } = useMemo(() => categorizeTrends(trends), [trends]);
 
+  const handleClearData = () => {
+    clearAllReports();
+    clearInsights();
+    setShowHowItWorks(false);
+    toast.success('All data cleared from this browser');
+  };
+
   return (
-    <InsightsProvider>
+    <>
+      {/* How it works modal */}
+      <Dialog open={showHowItWorks} onOpenChange={setShowHowItWorks}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>How HealthTrend works (in your browser)</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-3 py-4">
+            <ul className="space-y-3 text-sm text-muted-foreground">
+              <li className="flex gap-2">
+                <span className="text-primary">•</span>
+                <span>Processing happens locally on this device (your PDF is read in your browser).</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-primary">•</span>
+                <span>Stored data: your extracted markers are kept only in this browser session unless you export.</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-primary">•</span>
+                <span>Clear data anytime: use 'Clear data' to remove extracted results from this browser.</span>
+              </li>
+            </ul>
+          </div>
+          
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={handleClearData}
+              className="sm:order-1"
+            >
+              Clear data
+            </Button>
+            <Button
+              onClick={() => setShowHowItWorks(false)}
+              className="sm:order-2"
+            >
+              Got it
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <div className="min-h-screen bg-background">
         {/* Hero Section */}
         <header className="border-b bg-card/50">
@@ -38,7 +98,13 @@ const Index = () => {
             </div>
             <p className="text-muted-foreground max-w-xl">
               Upload your lab reports to visualize trends, identify out-of-range markers, 
-              and track changes over time. Your data stays in your browser.
+              and track changes over time. Your data stays in your browser.{' '}
+              <button
+                onClick={() => setShowHowItWorks(true)}
+                className="text-primary hover:underline font-medium"
+              >
+                How it works
+              </button>
             </p>
           </div>
         </header>
@@ -70,13 +136,18 @@ const Index = () => {
           {reports.length > 0 && (
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <AnalyticsBanner reports={reports} isDemo={isDemo} />
-              <ExportButton 
-                reports={reports}
-                isDemo={isDemo}
-                outOfRange={outOfRange}
-                worsening={worsening}
-                other={other}
-              />
+              <div className="flex flex-col items-end gap-1">
+                <ExportButton 
+                  reports={reports}
+                  isDemo={isDemo}
+                  outOfRange={outOfRange}
+                  worsening={worsening}
+                  other={other}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Export saves a copy to your device.
+                </p>
+              </div>
             </div>
           )}
 
@@ -105,6 +176,14 @@ const Index = () => {
           </div>
         </footer>
       </div>
+    </>
+  );
+};
+
+const Index = () => {
+  return (
+    <InsightsProvider>
+      <IndexContent />
     </InsightsProvider>
   );
 };
