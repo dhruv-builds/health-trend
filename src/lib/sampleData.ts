@@ -97,9 +97,9 @@ const dec2025Rows: LabRow[] = [
   { id: 'dhruv-2025-glucose', testName: 'Glucose Fasting', canonicalName: 'Fasting Glucose', value: 82, valueRaw: '82', unit: 'mg/dL', refLow: 70, refHigh: 100, refRaw: '70-100', flag: 'normal', panel: 'Metabolic', reportId: 'dhruv-2025' },
   { id: 'dhruv-2025-hba1c', testName: 'Glycosylated Hemoglobin (HbA1c)', canonicalName: 'HbA1c', value: 5, valueRaw: '5', unit: '%', refLow: null, refHigh: 5.6, refRaw: '<5.6', flag: 'normal', panel: 'Metabolic', reportId: 'dhruv-2025' },
 
-  // Vitamins
-  { id: 'dhruv-2025-vitd', testName: 'Vitamin D 25 - Hydroxy', canonicalName: 'Vitamin D', value: 28.2, valueRaw: '28.2', unit: 'ng/mL', refLow: 30, refHigh: 100, refRaw: '30-100', flag: 'low', panel: 'Vitamins', reportId: 'dhruv-2025' },
-  { id: 'dhruv-2025-b12', testName: 'Vitamin - B12', canonicalName: 'Vitamin B12', value: 405, valueRaw: '405', unit: 'pg/mL', refLow: 187, refHigh: 883, refRaw: '187-883', flag: 'normal', panel: 'Vitamins', reportId: 'dhruv-2025' },
+  // Vitamins & Minerals
+  { id: 'dhruv-2025-vitd', testName: 'Vitamin D 25 - Hydroxy', canonicalName: 'Vitamin D', value: 28.2, valueRaw: '28.2', unit: 'ng/mL', refLow: 30, refHigh: 100, refRaw: '30-100', flag: 'low', panel: 'Vitamins & Minerals', reportId: 'dhruv-2025' },
+  { id: 'dhruv-2025-b12', testName: 'Vitamin - B12', canonicalName: 'Vitamin B12', value: 405, valueRaw: '405', unit: 'pg/mL', refLow: 187, refHigh: 883, refRaw: '187-883', flag: 'normal', panel: 'Vitamins & Minerals', reportId: 'dhruv-2025' },
 
   // Electrolytes
   { id: 'dhruv-2025-sodium', testName: 'Sodium', canonicalName: 'Sodium', value: 140, valueRaw: '140', unit: 'mmol/L', refLow: 136, refHigh: 145, refRaw: '136-145', flag: 'normal', panel: 'Electrolytes', reportId: 'dhruv-2025' },
