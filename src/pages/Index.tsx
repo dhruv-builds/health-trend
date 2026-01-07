@@ -126,6 +126,17 @@ const IndexContent = () => {
           </div>
         </header>
 
+        {/* Medical Disclaimer */}
+        <div className="border-b bg-accent/50">
+          <div className="container max-w-6xl py-3 px-4 flex items-start gap-3">
+            <Shield className="w-5 h-5 text-accent-foreground flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-accent-foreground">
+              <strong>For educational purposes only.</strong> This tool does not provide medical advice. 
+              Always consult your healthcare provider for interpretation of lab results.
+            </p>
+          </div>
+        </div>
+
         {/* Public Example Banner */}
         {isPublicExample && (
           <div className="sticky top-0 z-10 bg-amber-50 dark:bg-amber-950/30 border-b border-amber-200 dark:border-amber-800">
@@ -149,16 +160,6 @@ const IndexContent = () => {
         )}
 
         <main className="container max-w-6xl py-8 px-4 space-y-8">
-          {/* Medical Disclaimer */}
-          <div className="flex items-start gap-3 p-4 rounded-xl bg-accent/50 border border-accent">
-            <Shield className="w-5 h-5 text-accent-foreground flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm text-accent-foreground">
-                <strong>For educational purposes only.</strong> This tool does not provide medical advice. 
-                Always consult your healthcare provider for interpretation of lab results.
-              </p>
-            </div>
-          </div>
 
           {/* Upload Section */}
           <section className="grid md:grid-cols-2 gap-6">
