@@ -55,6 +55,17 @@ export function MarkerCard({ trend, showAIInsights = true }: MarkerCardProps) {
   };
 
   const getStatusStyles = () => {
+    // If unit variance detected AND status is improving/stable, show neutral "Within Range"
+    if (hasUnitVariance && (status === 'improving' || status === 'stable')) {
+      return {
+        border: 'border-border',
+        bg: 'bg-card',
+        badge: 'bg-secondary text-secondary-foreground',
+        badgeText: 'Within Range',
+        icon: Minus,
+      };
+    }
+
     switch (status) {
       case 'out_of_range':
         return {
