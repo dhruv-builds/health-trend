@@ -41,8 +41,8 @@ export function MarkerSections({ outOfRange, worsening, other }: MarkerSectionsP
   return (
     <div className="space-y-6">
       {/* Search and Filter */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
+      <div className="space-y-3">
+        <div className="relative max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="Search markers..."
@@ -51,7 +51,7 @@ export function MarkerSections({ outOfRange, worsening, other }: MarkerSectionsP
             className="pl-9"
           />
         </div>
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap">
           <Button
             variant={selectedPanel === null ? 'default' : 'outline'}
             size="sm"
