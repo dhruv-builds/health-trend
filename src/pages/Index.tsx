@@ -152,61 +152,64 @@ const IndexContent = () => {
             />
           </section>
 
-          {/* Public Example Banner */}
-          {isPublicExample && (
-            <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl">
-              <div className="py-3 px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-                <p className="text-sm text-amber-800 dark:text-amber-200">
-                  <strong>Viewing Dhruv's public example</strong> (real lab reports). 
-                  Upload yours to see your results.
-                </p>
-                <div className="flex items-center gap-3">
-                  <Button 
-                    onClick={handleUploadClick}
-                    size="sm"
-                    className="gap-2"
-                  >
-                    <Upload className="w-4 h-4" />
-                    Upload your report
-                  </Button>
+          {/* Analytics Section Container */}
+          <div className="bg-muted/50 border border-border rounded-xl p-6 space-y-6">
+            {/* Public Example Banner */}
+            {isPublicExample && (
+              <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl">
+                <div className="py-3 px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+                  <p className="text-sm text-amber-800 dark:text-amber-200">
+                    <strong>Viewing Dhruv's public example</strong> (real lab reports). 
+                    Upload yours to see your results.
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <Button 
+                      onClick={handleUploadClick}
+                      size="sm"
+                      className="gap-2"
+                    >
+                      <Upload className="w-4 h-4" />
+                      Upload your report
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Analytics Banner with Export Button */}
-          {reports.length > 0 && (
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <AnalyticsBanner reports={reports} activeDataset={activeDataset} />
-              <div className="flex flex-col items-end gap-1">
-                <ExportButton 
-                  reports={reports}
-                  isDemo={isPublicExample}
-                  outOfRange={outOfRange}
-                  worsening={worsening}
-                  other={other}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Export saves a copy to your device.
-                </p>
+            {/* Analytics Banner with Export Button */}
+            {reports.length > 0 && (
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <AnalyticsBanner reports={reports} activeDataset={activeDataset} />
+                <div className="flex flex-col items-end gap-1">
+                  <ExportButton 
+                    reports={reports}
+                    isDemo={isPublicExample}
+                    outOfRange={outOfRange}
+                    worsening={worsening}
+                    other={other}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Export saves a copy to your device.
+                  </p>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Stats */}
-          <StatsBar 
-            reports={reports}
-            trends={trends}
-            outOfRangeCount={outOfRange.length}
-            worseningCount={worsening.length}
-          />
+            {/* Stats */}
+            <StatsBar 
+              reports={reports}
+              trends={trends}
+              outOfRangeCount={outOfRange.length}
+              worseningCount={worsening.length}
+            />
 
-          {/* Markers Dashboard */}
-          <MarkerSections 
-            outOfRange={outOfRange}
-            worsening={worsening}
-            other={other}
-          />
+            {/* Markers Dashboard */}
+            <MarkerSections 
+              outOfRange={outOfRange}
+              worsening={worsening}
+              other={other}
+            />
+          </div>
         </main>
 
         {/* Footer */}
