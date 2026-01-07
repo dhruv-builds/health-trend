@@ -33,6 +33,7 @@ export function MarkerCard({ trend, showAIInsights = true }: MarkerCardProps) {
     refHigh,
     status,
     changePercent,
+    hasUnitVariance,
   } = trend;
 
   const chartData = dataPoints.map(dp => ({
@@ -150,8 +151,8 @@ export function MarkerCard({ trend, showAIInsights = true }: MarkerCardProps) {
         <span className="text-sm text-muted-foreground">{unit}</span>
       </div>
 
-      {/* Previous value and change */}
-      {previousValue !== null && (
+      {/* Previous value and change - hide if unit variance detected */}
+      {previousValue !== null && !hasUnitVariance && (
         <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
           <span>Previous: {formatValue(previousValue)}</span>
           {changePercent !== null && (
@@ -171,8 +172,8 @@ export function MarkerCard({ trend, showAIInsights = true }: MarkerCardProps) {
         Normal range: {refLow !== null ? formatValue(refLow) : '—'} – {refHigh !== null ? formatValue(refHigh) : '—'} {unit}
       </div>
 
-      {/* Sparkline */}
-      {dataPoints.length > 1 && (
+      {/* Sparkline - hide if unit variance detected */}
+      {dataPoints.length > 1 && !hasUnitVariance && (
         <div className="h-12 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData}>
@@ -194,17 +195,26 @@ export function MarkerCard({ trend, showAIInsights = true }: MarkerCardProps) {
         </div>
       )}
 
-      {/* Dates */}
-      <div className="flex justify-between text-xs text-muted-foreground mt-2">
-        {dataPoints.length > 0 && (
-          <>
-            <span>{format(dataPoints[0].date, 'MMM yyyy')}</span>
-            {dataPoints.length > 1 && (
-              <span>{format(dataPoints[dataPoints.length - 1].date, 'MMM yyyy')}</span>
-            )}
-          </>
-        )}
-      </div>
+      {/* Unit variance indicator */}
+      {hasUnitVariance && (
+        <div className="text-xs text-muted-foreground italic py-2">
+          Trend unavailable (unit variance detected)
+        </div>
+      )}
+
+      {/* Dates - hide if unit variance detected */}
+      {!hasUnitVariance && (
+        <div className="flex justify-between text-xs text-muted-foreground mt-2">
+          {dataPoints.length > 0 && (
+            <>
+              <span>{format(dataPoints[0].date, 'MMM yyyy')}</span>
+              {dataPoints.length > 1 && (
+                <span>{format(dataPoints[dataPoints.length - 1].date, 'MMM yyyy')}</span>
+              )}
+            </>
+          )}
+        </div>
+      )}
 
       {/* AI Insights Button */}
       {showAIInsights && (
