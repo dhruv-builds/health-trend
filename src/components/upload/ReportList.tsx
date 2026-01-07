@@ -1,20 +1,22 @@
 import { format } from 'date-fns';
 import { FileText, Trash2, Calendar, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
-import { LabReport } from '@/lib/types';
+import { LabReport, ActiveDataset } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 interface ReportListProps {
   reports: LabReport[];
-  isDemo: boolean;
+  activeDataset: ActiveDataset;
   onRemove: (reportId: string) => void;
   onDateChange: (reportId: string, date: Date) => void;
 }
 
-export function ReportList({ reports, isDemo, onRemove, onDateChange }: ReportListProps) {
+export function ReportList({ reports, activeDataset, onRemove, onDateChange }: ReportListProps) {
   if (reports.length === 0) {
     return null;
   }
+
+  const isPublicExample = activeDataset === 'public_dhruv';
 
   const getStatusIcon = (status: LabReport['status']) => {
     switch (status) {
@@ -49,7 +51,7 @@ export function ReportList({ reports, isDemo, onRemove, onDateChange }: ReportLi
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-medium text-muted-foreground">
-          {isDemo ? 'Sample Reports (Demo)' : 'Uploaded Reports'}
+          {isPublicExample ? "Public example (Dhruv's real reports)" : 'Uploaded Reports'}
         </h3>
         <span className="text-xs text-muted-foreground">
           {reports.length} report{reports.length !== 1 ? 's' : ''}
@@ -93,7 +95,7 @@ export function ReportList({ reports, isDemo, onRemove, onDateChange }: ReportLi
               </div>
             </div>
 
-            {!isDemo && (
+            {!isPublicExample && (
               <Button
                 variant="ghost"
                 size="icon"
@@ -107,9 +109,9 @@ export function ReportList({ reports, isDemo, onRemove, onDateChange }: ReportLi
         ))}
       </div>
 
-      {isDemo && (
+      {isPublicExample && (
         <p className="text-xs text-muted-foreground text-center py-2">
-          Upload your own reports to see your personal lab trends
+          Upload your reports to compare with your own results
         </p>
       )}
     </div>

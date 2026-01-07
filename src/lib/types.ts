@@ -1,5 +1,7 @@
 // Core data types for HealthTrend
 
+export type ActiveDataset = 'none' | 'public_dhruv' | 'user_upload';
+
 export interface LabRow {
   id: string;
   testName: string;
