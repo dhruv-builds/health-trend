@@ -53,6 +53,20 @@ export function calculateTrends(reports: LabReport[]): TrendData[] {
       changePercent = ((currentValue - previousValue) / previousValue) * 100;
     }
 
+    // Detect potential unit mismatch (>50% change between any consecutive readings)
+    let hasUnitVariance = false;
+    for (let i = 1; i < sorted.length; i++) {
+      const prevVal = sorted[i - 1].row.value!;
+      const currVal = sorted[i].row.value!;
+      if (prevVal !== 0) {
+        const pctChange = Math.abs(((currVal - prevVal) / prevVal) * 100);
+        if (pctChange > 50) {
+          hasUnitVariance = true;
+          break;
+        }
+      }
+    }
+
     // Determine status
     const status = determineStatus(currentValue, previousValue, refLow, refHigh, changePercent);
 
@@ -74,6 +88,7 @@ export function calculateTrends(reports: LabReport[]): TrendData[] {
       refHigh,
       status,
       changePercent,
+      hasUnitVariance,
     });
   }
 

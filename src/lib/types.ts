@@ -47,6 +47,7 @@ export interface TrendData {
   refHigh: number | null;
   status: 'out_of_range' | 'worsening' | 'stable' | 'improving';
   changePercent: number | null;
+  hasUnitVariance: boolean;
 }
 
 export interface MarkerInsight {
