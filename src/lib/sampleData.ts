@@ -5,9 +5,9 @@ import { LabReport, LabRow } from './types';
 const dec2023Rows: LabRow[] = [
   // Complete Blood Count (CBC)
   { id: 'dhruv-2023-hb', testName: 'Haemoglobin', canonicalName: 'Hemoglobin', value: 14.9, valueRaw: '14.9', unit: 'g/dL', refLow: 13, refHigh: 17, refRaw: '13-17', flag: 'normal', panel: 'CBC', reportId: 'dhruv-2023' },
-  { id: 'dhruv-2023-rbc', testName: 'RBC Count', canonicalName: 'RBC Count', value: 4.75, valueRaw: '4.75', unit: 'Million/cu.mm', refLow: 4.5, refHigh: 5.5, refRaw: '4.5-5.5', flag: 'normal', panel: 'CBC', reportId: 'dhruv-2023' },
-  { id: 'dhruv-2023-wbc', testName: 'Total Leucocyte Count (TLC)', canonicalName: 'WBC Count', value: 4400, valueRaw: '4,400', unit: 'cells/cu.mm', refLow: 4000, refHigh: 10000, refRaw: '4000-10000', flag: 'normal', panel: 'CBC', reportId: 'dhruv-2023' },
-  { id: 'dhruv-2023-plt', testName: 'Platelet Count', canonicalName: 'Platelet Count', value: 261000, valueRaw: '261000', unit: 'cells/cu.mm', refLow: 150000, refHigh: 410000, refRaw: '150000-410000', flag: 'normal', panel: 'CBC', reportId: 'dhruv-2023' },
+  { id: 'dhruv-2023-rbc', testName: 'RBC Count', canonicalName: 'RBC Count', value: 4.75, valueRaw: '4.75', unit: '10^6/μl', refLow: 4.5, refHigh: 5.5, refRaw: '4.5-5.5', flag: 'normal', panel: 'CBC', reportId: 'dhruv-2023' },
+  { id: 'dhruv-2023-wbc', testName: 'Total Leucocyte Count (TLC)', canonicalName: 'WBC Count', value: 4.4, valueRaw: '4.4', unit: '10^3/μl', refLow: 4, refHigh: 10, refRaw: '4-10', flag: 'normal', panel: 'CBC', reportId: 'dhruv-2023' },
+  { id: 'dhruv-2023-plt', testName: 'Platelet Count', canonicalName: 'Platelet Count', value: 261, valueRaw: '261', unit: '10^3/μl', refLow: 150, refHigh: 410, refRaw: '150-410', flag: 'normal', panel: 'CBC', reportId: 'dhruv-2023' },
   { id: 'dhruv-2023-pcv', testName: 'PCV', canonicalName: 'PCV', value: 44.2, valueRaw: '44.20', unit: '%', refLow: 40, refHigh: 50, refRaw: '40-50', flag: 'normal', panel: 'CBC', reportId: 'dhruv-2023' },
   { id: 'dhruv-2023-mcv', testName: 'MCV', canonicalName: 'MCV', value: 93, valueRaw: '93', unit: 'fL', refLow: 83, refHigh: 101, refRaw: '83-101', flag: 'normal', panel: 'CBC', reportId: 'dhruv-2023' },
   { id: 'dhruv-2023-mch', testName: 'MCH', canonicalName: 'MCH', value: 31.4, valueRaw: '31.4', unit: 'pg', refLow: 27, refHigh: 32, refRaw: '27-32', flag: 'normal', panel: 'CBC', reportId: 'dhruv-2023' },
@@ -37,7 +37,7 @@ const dec2023Rows: LabRow[] = [
   { id: 'dhruv-2023-uric-acid', testName: 'Uric Acid', canonicalName: 'Uric Acid', value: 4.53, valueRaw: '4.53', unit: 'mg/dL', refLow: 3.5, refHigh: 7.2, refRaw: '3.5-7.2', flag: 'normal', panel: 'Kidney Profile', reportId: 'dhruv-2023' },
 
   // Thyroid Profile
-  { id: 'dhruv-2023-t3', testName: 'Tri-Iodothyronine (T3, Total)', canonicalName: 'T3', value: 0.92, valueRaw: '0.92', unit: 'ng/mL', refLow: 0.7, refHigh: 2.04, refRaw: '0.7-2.04', flag: 'normal', panel: 'Thyroid Profile', reportId: 'dhruv-2023' },
+  { id: 'dhruv-2023-t3', testName: 'Tri-Iodothyronine (T3, Total)', canonicalName: 'T3', value: 92, valueRaw: '92', unit: 'ng/dL', refLow: 70, refHigh: 204, refRaw: '70-204', flag: 'normal', panel: 'Thyroid Profile', reportId: 'dhruv-2023' },
   { id: 'dhruv-2023-t4', testName: 'Thyroxine (T4, Total)', canonicalName: 'T4', value: 8.73, valueRaw: '8.73', unit: 'μg/dL', refLow: 5.48, refHigh: 14.28, refRaw: '5.48-14.28', flag: 'normal', panel: 'Thyroid Profile', reportId: 'dhruv-2023' },
   { id: 'dhruv-2023-tsh', testName: 'Thyroid Stimulating Hormone (TSH)', canonicalName: 'TSH', value: 1.334, valueRaw: '1.334', unit: 'μIU/mL', refLow: 0.34, refHigh: 5.6, refRaw: '0.34-5.60', flag: 'normal', panel: 'Thyroid Profile', reportId: 'dhruv-2023' },
 
@@ -56,8 +56,8 @@ const dec2025Rows: LabRow[] = [
   // Complete Blood Count (CBC)
   { id: 'dhruv-2025-hb', testName: 'Hemoglobin', canonicalName: 'Hemoglobin', value: 15.6, valueRaw: '15.6', unit: 'g/dL', refLow: 13, refHigh: 17, refRaw: '13-17', flag: 'normal', panel: 'CBC', reportId: 'dhruv-2025' },
   { id: 'dhruv-2025-rbc', testName: 'RBC Count', canonicalName: 'RBC Count', value: 5, valueRaw: '5', unit: '10^6/μl', refLow: 4.5, refHigh: 5.5, refRaw: '4.5-5.5', flag: 'normal', panel: 'CBC', reportId: 'dhruv-2025' },
-  { id: 'dhruv-2025-wbc', testName: 'TLC', canonicalName: 'WBC Count', value: 4600, valueRaw: '4.6', unit: '10^3/μl', refLow: 4, refHigh: 10, refRaw: '4-10', flag: 'normal', panel: 'CBC', reportId: 'dhruv-2025' },
-  { id: 'dhruv-2025-plt', testName: 'Platelet Count', canonicalName: 'Platelet Count', value: 264000, valueRaw: '264', unit: '10^3/μl', refLow: 150, refHigh: 410, refRaw: '150-410', flag: 'normal', panel: 'CBC', reportId: 'dhruv-2025' },
+  { id: 'dhruv-2025-wbc', testName: 'TLC', canonicalName: 'WBC Count', value: 4.6, valueRaw: '4.6', unit: '10^3/μl', refLow: 4, refHigh: 10, refRaw: '4-10', flag: 'normal', panel: 'CBC', reportId: 'dhruv-2025' },
+  { id: 'dhruv-2025-plt', testName: 'Platelet Count', canonicalName: 'Platelet Count', value: 264, valueRaw: '264', unit: '10^3/μl', refLow: 150, refHigh: 410, refRaw: '150-410', flag: 'normal', panel: 'CBC', reportId: 'dhruv-2025' },
   { id: 'dhruv-2025-pcv', testName: 'PCV', canonicalName: 'PCV', value: 42, valueRaw: '42', unit: '%', refLow: 40, refHigh: 50, refRaw: '40-50', flag: 'normal', panel: 'CBC', reportId: 'dhruv-2025' },
   { id: 'dhruv-2025-mcv', testName: 'MCV', canonicalName: 'MCV', value: 84, valueRaw: '84', unit: 'fl', refLow: 83, refHigh: 101, refRaw: '83-101', flag: 'normal', panel: 'CBC', reportId: 'dhruv-2025' },
   { id: 'dhruv-2025-mch', testName: 'MCH', canonicalName: 'MCH', value: 31.1, valueRaw: '31.1', unit: 'pg', refLow: 27, refHigh: 32, refRaw: '27-32', flag: 'normal', panel: 'CBC', reportId: 'dhruv-2025' },
