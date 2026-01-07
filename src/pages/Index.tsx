@@ -137,28 +137,6 @@ const IndexContent = () => {
           </div>
         </div>
 
-        {/* Public Example Banner */}
-        {isPublicExample && (
-          <div className="sticky top-0 z-10 bg-amber-50 dark:bg-amber-950/30 border-b border-amber-200 dark:border-amber-800">
-            <div className="container max-w-6xl py-3 px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-              <p className="text-sm text-amber-800 dark:text-amber-200">
-                <strong>Viewing Dhruv's public example</strong> (real lab reports). 
-                Upload yours to see your results.
-              </p>
-              <div className="flex items-center gap-3">
-                <Button 
-                  onClick={handleUploadClick}
-                  size="sm"
-                  className="gap-2"
-                >
-                  <Upload className="w-4 h-4" />
-                  Upload your report
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-
         <main className="container max-w-6xl py-8 px-4 space-y-8">
 
           {/* Upload Section */}
@@ -173,6 +151,28 @@ const IndexContent = () => {
               onDateChange={updateReportDate}
             />
           </section>
+
+          {/* Public Example Banner */}
+          {isPublicExample && (
+            <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl">
+              <div className="py-3 px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <p className="text-sm text-amber-800 dark:text-amber-200">
+                  <strong>Viewing Dhruv's public example</strong> (real lab reports). 
+                  Upload yours to see your results.
+                </p>
+                <div className="flex items-center gap-3">
+                  <Button 
+                    onClick={handleUploadClick}
+                    size="sm"
+                    className="gap-2"
+                  >
+                    <Upload className="w-4 h-4" />
+                    Upload your report
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Analytics Banner with Export Button */}
           {reports.length > 0 && (
