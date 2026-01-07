@@ -32,8 +32,7 @@ function getStatusLabel(status: TrendData['status']): string {
   switch (status) {
     case 'out_of_range': return 'OUT OF RANGE';
     case 'worsening': return 'WORSENING';
-    case 'improving': return 'IMPROVING';
-    default: return 'STABLE';
+    default: return 'WITHIN RANGE';
   }
 }
 

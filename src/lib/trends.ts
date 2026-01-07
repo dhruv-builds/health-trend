@@ -150,12 +150,6 @@ function determineStatus(
     return 'worsening';
   }
 
-  // Check for improving trend (moving away from boundary)
-  if (changePercent !== null) {
-    if (refLow !== null && changePercent > 5 && previous < current) return 'improving';
-    if (refHigh !== null && changePercent < -5 && previous > current) return 'improving';
-  }
-
   return 'stable';
 }
 
@@ -166,7 +160,7 @@ export function categorizeTrends(trends: TrendData[]): {
 } {
   const outOfRange = trends.filter(t => t.status === 'out_of_range');
   const worsening = trends.filter(t => t.status === 'worsening');
-  const other = trends.filter(t => t.status === 'stable' || t.status === 'improving');
+  const other = trends.filter(t => t.status === 'stable');
 
   return { outOfRange, worsening, other };
 }

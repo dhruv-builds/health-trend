@@ -45,7 +45,7 @@ export interface TrendData {
   previousValue: number | null;
   refLow: number | null;
   refHigh: number | null;
-  status: 'out_of_range' | 'worsening' | 'stable' | 'improving';
+  status: 'out_of_range' | 'worsening' | 'stable';
   changePercent: number | null;
   hasUnitVariance: boolean;
 }
