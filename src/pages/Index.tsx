@@ -114,7 +114,7 @@ const IndexContent = () => {
                 <Activity className="w-6 h-6 text-primary" />
               </div>
               <h1 className="text-2xl md:text-3xl font-bold text-foreground font-display">
-                HealthTrend: Your Personal Lab Dashboard
+                HealthTrend
               </h1>
             </div>
             <p className="text-muted-foreground max-w-xl">
