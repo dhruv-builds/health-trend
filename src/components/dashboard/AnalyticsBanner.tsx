@@ -39,8 +39,7 @@ export const AnalyticsBanner = ({ reports, activeDataset }: AnalyticsBannerProps
     if (isPublicExample) {
       return (
         <>
-          Viewing analytics for <strong className="text-foreground">Dhruv</strong>{' '}
-          <span className="text-amber-600 dark:text-amber-400">(public example)</span>
+          Viewing analytics for <strong className="text-foreground">Dhruv</strong>
           {formattedDates && (
             <> — <strong className="text-foreground">{formattedDates}</strong></>
           )}
