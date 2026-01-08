@@ -412,27 +412,45 @@ export async function exportAnalysisPdf(data: ExportData): Promise<void> {
   
   // Add disclaimer on last page
   const pageHeight = doc.internal.pageSize.getHeight();
-  if (currentY > pageHeight - 50) {
+  if (currentY > pageHeight - 60) {
     doc.addPage();
     currentY = 25;
   }
   
-  const disclaimerBoxHeight = 20;
-  const disclaimerBoxY = pageHeight - 45;
-  const disclaimerCenterY = disclaimerBoxY + (disclaimerBoxHeight / 2) + 1;
-  
-  doc.setFillColor(255, 243, 205);
-  doc.roundedRect(margin, disclaimerBoxY, pageWidth - margin * 2, disclaimerBoxHeight, 3, 3, 'F');
+  // Calculate dimensions for disclaimer
+  const disclaimerPadding = 10;
+  const labelWidth = 48;
+  const boxWidth = pageWidth - margin * 2;
+  const availableTextWidth = boxWidth - labelWidth - disclaimerPadding * 3;
   
   doc.setFontSize(8);
+  const disclaimerText = 'This report is for educational purposes only and does not constitute medical advice. Always consult your healthcare provider for interpretation of lab results.';
+  const wrappedDisclaimer = doc.splitTextToSize(disclaimerText, availableTextWidth);
+  
+  const lineHeight = 4;
+  const textLines = wrappedDisclaimer.length;
+  const disclaimerBoxHeight = Math.max(24, textLines * lineHeight + 14);
+  const disclaimerBoxY = pageHeight - disclaimerBoxHeight - 30;
+  
+  // Draw yellow background
+  doc.setFillColor(255, 243, 205);
+  doc.roundedRect(margin, disclaimerBoxY, boxWidth, disclaimerBoxHeight, 3, 3, 'F');
+  
+  // Draw "DISCLAIMER" label - vertically centered
+  const boxCenterY = disclaimerBoxY + disclaimerBoxHeight / 2;
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...COLORS.warning);
-  doc.text('DISCLAIMER', margin + 8, disclaimerCenterY);
+  doc.text('DISCLAIMER', margin + disclaimerPadding, boxCenterY + 1);
   
+  // Draw wrapped disclaimer text - vertically centered
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...COLORS.text);
-  const disclaimer = 'This report is for educational purposes only and does not constitute medical advice. Always consult your healthcare provider for interpretation of lab results.';
-  doc.text(disclaimer, margin + 40, disclaimerCenterY);
+  const totalTextHeight = (textLines - 1) * lineHeight;
+  const textStartY = boxCenterY - totalTextHeight / 2 + 1;
+  
+  wrappedDisclaimer.forEach((line: string, index: number) => {
+    doc.text(line, margin + disclaimerPadding + labelWidth, textStartY + (index * lineHeight));
+  });
   
   // Add footer to all pages
   const totalPages = doc.getNumberOfPages();
