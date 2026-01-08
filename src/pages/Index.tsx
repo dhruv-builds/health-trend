@@ -69,6 +69,10 @@ const IndexContent = () => {
           <div className="space-y-3 py-4">
             <ul className="space-y-3 text-sm text-muted-foreground">
               <li className="flex gap-2">
+                <span className="text-amber-500">•</span>
+                <span>Upload multiple lab PDFs to visualize trends, spot out-of-range markers, and get plain-English insights on what to do next.</span>
+              </li>
+              <li className="flex gap-2">
                 <span className="text-primary">•</span>
                 <span>Processing happens locally on this device (your PDF is read in your browser).</span>
               </li>
