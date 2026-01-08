@@ -7,6 +7,41 @@ const corsHeaders = {
 
 const PERPLEXITY_API_KEY = Deno.env.get('PERPLEXITY_API_KEY');
 
+// Rate limiting: 10 requests per minute per IP
+const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
+const RATE_LIMIT_MAX_REQUESTS = 10;
+const rateLimitMap = new Map<string, number[]>();
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const timestamps = rateLimitMap.get(ip) || [];
+  
+  // Filter to only keep timestamps within the window
+  const recentTimestamps = timestamps.filter(t => now - t < RATE_LIMIT_WINDOW_MS);
+  
+  if (recentTimestamps.length >= RATE_LIMIT_MAX_REQUESTS) {
+    return true;
+  }
+  
+  // Add current request timestamp
+  recentTimestamps.push(now);
+  rateLimitMap.set(ip, recentTimestamps);
+  
+  // Cleanup old IPs periodically (every 100 requests)
+  if (Math.random() < 0.01) {
+    for (const [key, times] of rateLimitMap.entries()) {
+      const validTimes = times.filter(t => now - t < RATE_LIMIT_WINDOW_MS);
+      if (validTimes.length === 0) {
+        rateLimitMap.delete(key);
+      } else {
+        rateLimitMap.set(key, validTimes);
+      }
+    }
+  }
+  
+  return false;
+}
+
 const systemPrompt = `You are a medical lab results assistant. Given a lab marker with its current value, reference range, and trend data, provide a helpful explanation for a patient.
 
 Your response must be valid JSON with this exact structure:
@@ -92,6 +127,19 @@ serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  // Rate limiting check
+  const clientIP = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
+                   req.headers.get('x-real-ip') || 
+                   'unknown';
+  
+  if (isRateLimited(clientIP)) {
+    console.log(`Rate limit exceeded for IP: ${clientIP}`);
+    return new Response(
+      JSON.stringify({ error: 'Too many requests. Please wait a minute and try again.' }),
+      { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
   }
 
   try {
