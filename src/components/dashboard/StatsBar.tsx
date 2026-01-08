@@ -36,7 +36,7 @@ export function StatsBar({ reports, trends, outOfRangeCount, worseningCount }: S
       bgColor: outOfRangeCount > 0 ? 'bg-destructive/10' : 'bg-success/10',
     },
     {
-      label: 'Worsening',
+      label: 'Near Limit',
       value: worseningCount,
       icon: TrendingUp,
       color: worseningCount > 0 ? 'text-warning' : 'text-success',

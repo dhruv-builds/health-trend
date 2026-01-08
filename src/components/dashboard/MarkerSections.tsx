@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { AlertCircle, AlertTriangle, Activity, ChevronDown, ChevronUp, Search } from 'lucide-react';
+import { AlertCircle, Eye, Activity, ChevronDown, ChevronUp, Search } from 'lucide-react';
 import { TrendData } from '@/lib/types';
 import { MarkerCard } from '@/components/markers/MarkerCard';
 import { Input } from '@/components/ui/input';
@@ -94,8 +94,8 @@ export function MarkerSections({ outOfRange, worsening, other }: MarkerSectionsP
       {filteredWorsening.length > 0 && (
         <section>
           <div className="flex items-center gap-2 mb-4">
-            <AlertTriangle className="w-5 h-5 text-warning" />
-            <h2 className="text-lg font-semibold text-foreground">Worsening Trends</h2>
+            <Eye className="w-5 h-5 text-warning" />
+            <h2 className="text-lg font-semibold text-foreground">Trends to Monitor</h2>
             <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-warning/10 text-warning">
               {filteredWorsening.length}
             </span>
