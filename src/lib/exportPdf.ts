@@ -22,7 +22,7 @@ const COLORS = {
   background: [248, 250, 252] as [number, number, number],
 };
 
-const WEBSITE_URL = 'https://healthtrend.app';
+const WEBSITE_URL = 'https://health-trend.lovable.app/';
 
 function formatValue(val: number): string {
   if (val >= 10000) return val.toLocaleString();
@@ -417,19 +417,22 @@ export async function exportAnalysisPdf(data: ExportData): Promise<void> {
     currentY = 25;
   }
   
+  const disclaimerBoxHeight = 20;
+  const disclaimerBoxY = pageHeight - 45;
+  const disclaimerCenterY = disclaimerBoxY + (disclaimerBoxHeight / 2) + 1;
+  
   doc.setFillColor(255, 243, 205);
-  doc.roundedRect(margin, pageHeight - 45, pageWidth - margin * 2, 20, 3, 3, 'F');
+  doc.roundedRect(margin, disclaimerBoxY, pageWidth - margin * 2, disclaimerBoxHeight, 3, 3, 'F');
   
   doc.setFontSize(8);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...COLORS.warning);
-  doc.text('DISCLAIMER', margin + 8, pageHeight - 35);
+  doc.text('DISCLAIMER', margin + 8, disclaimerCenterY);
   
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...COLORS.text);
   const disclaimer = 'This report is for educational purposes only and does not constitute medical advice. Always consult your healthcare provider for interpretation of lab results.';
-  const disclaimerLines = doc.splitTextToSize(disclaimer, pageWidth - margin * 2 - 16);
-  doc.text(disclaimerLines, margin + 8, pageHeight - 30);
+  doc.text(disclaimer, margin + 40, disclaimerCenterY);
   
   // Add footer to all pages
   const totalPages = doc.getNumberOfPages();
