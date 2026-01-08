@@ -22,6 +22,8 @@ const COLORS = {
   background: [248, 250, 252] as [number, number, number],
 };
 
+const WEBSITE_URL = 'https://healthtrend.app';
+
 function formatValue(val: number): string {
   if (val >= 10000) return val.toLocaleString();
   if (Number.isInteger(val)) return val.toString();
@@ -36,114 +38,156 @@ function getStatusLabel(status: TrendData['status']): string {
   }
 }
 
-function addInsightBlock(doc: jsPDF, insight: MarkerInsight, startY: number, pageWidth: number): number {
+// Draw an activity/chart icon using PDF primitives
+function drawActivityIcon(doc: jsPDF, x: number, y: number, size: number, color: [number, number, number] = [255, 255, 255]) {
+  doc.setDrawColor(...color);
+  doc.setLineWidth(size * 0.12);
+  doc.setLineCap('round');
+  doc.setLineJoin('round');
+  
+  // Draw a simple pulse/chart line (zigzag pattern like Activity icon)
+  const points = [
+    { x: x, y: y + size * 0.5 },
+    { x: x + size * 0.2, y: y + size * 0.5 },
+    { x: x + size * 0.35, y: y + size * 0.15 },
+    { x: x + size * 0.5, y: y + size * 0.85 },
+    { x: x + size * 0.65, y: y + size * 0.3 },
+    { x: x + size * 0.8, y: y + size * 0.5 },
+    { x: x + size, y: y + size * 0.5 },
+  ];
+  
+  for (let i = 0; i < points.length - 1; i++) {
+    doc.line(points[i].x, points[i].y, points[i + 1].x, points[i + 1].y);
+  }
+}
+
+function addInsightBlock(doc: jsPDF, insight: MarkerInsight, markerName: string, startY: number, pageWidth: number): number {
   const margin = 20;
-  const contentWidth = pageWidth - margin * 2;
-  const insightBoxPadding = 8;
+  const contentWidth = pageWidth - margin * 2 - 10; // Extra margin buffer
+  const insightBoxPadding = 10;
   const lineHeight = 5;
   
-  let currentY = startY + 5;
+  let currentY = startY + 8;
   
   // Calculate if we need a new page
-  const estimatedHeight = 60 + (insight.concerns.length + insight.suggestions.length + insight.doctorQuestions.length) * 6;
-  if (currentY + estimatedHeight > doc.internal.pageSize.getHeight() - 30) {
+  const estimatedHeight = 80 + (insight.concerns.length + insight.suggestions.length + insight.doctorQuestions.length) * 8;
+  if (currentY + estimatedHeight > doc.internal.pageSize.getHeight() - 40) {
     doc.addPage();
-    currentY = 20;
+    currentY = 25;
   }
+  
+  // Marker name heading
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...COLORS.text);
+  doc.text(markerName, margin, currentY);
+  currentY += 8;
   
   // Draw insight box background
   doc.setFillColor(...COLORS.background);
-  doc.roundedRect(margin, currentY, contentWidth, 10, 2, 2, 'F');
+  doc.roundedRect(margin, currentY, contentWidth + 10, 12, 2, 2, 'F');
   
   // AI Insights header
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...COLORS.primary);
-  doc.text('AI Insights', margin + insightBoxPadding, currentY + 7);
+  doc.text('AI Insights', margin + insightBoxPadding, currentY + 8);
   
   // Confidence badge
   const confidenceText = insight.confidence.toUpperCase() + ' CONFIDENCE';
   doc.setFontSize(7);
   doc.setTextColor(...COLORS.muted);
   const confidenceWidth = doc.getTextWidth(confidenceText);
-  doc.text(confidenceText, pageWidth - margin - insightBoxPadding - confidenceWidth, currentY + 7);
+  doc.text(confidenceText, pageWidth - margin - insightBoxPadding - confidenceWidth, currentY + 8);
   
-  currentY += 15;
+  currentY += 18;
   
   // Explanation
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...COLORS.text);
-  const explanationLines = doc.splitTextToSize(insight.explanation, contentWidth - insightBoxPadding * 2);
+  const explanationLines = doc.splitTextToSize(insight.explanation, contentWidth - insightBoxPadding);
   doc.text(explanationLines, margin + insightBoxPadding, currentY);
-  currentY += explanationLines.length * lineHeight + 5;
+  currentY += explanationLines.length * lineHeight + 8;
   
   // Concerns
   if (insight.concerns.length > 0) {
-    if (currentY > doc.internal.pageSize.getHeight() - 40) {
+    if (currentY > doc.internal.pageSize.getHeight() - 50) {
       doc.addPage();
-      currentY = 20;
+      currentY = 25;
     }
     
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...COLORS.warning);
     doc.text('Potential Concerns:', margin + insightBoxPadding, currentY);
-    currentY += lineHeight + 2;
+    currentY += lineHeight + 3;
     
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(...COLORS.text);
     insight.concerns.forEach(concern => {
-      const lines = doc.splitTextToSize('• ' + concern, contentWidth - insightBoxPadding * 2 - 5);
+      if (currentY > doc.internal.pageSize.getHeight() - 30) {
+        doc.addPage();
+        currentY = 25;
+      }
+      const lines = doc.splitTextToSize('• ' + concern, contentWidth - insightBoxPadding - 10);
       doc.text(lines, margin + insightBoxPadding + 5, currentY);
-      currentY += lines.length * lineHeight;
+      currentY += lines.length * lineHeight + 2;
     });
-    currentY += 3;
+    currentY += 5;
   }
   
   // Suggestions
   if (insight.suggestions.length > 0) {
-    if (currentY > doc.internal.pageSize.getHeight() - 40) {
+    if (currentY > doc.internal.pageSize.getHeight() - 50) {
       doc.addPage();
-      currentY = 20;
+      currentY = 25;
     }
     
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...COLORS.success);
     doc.text('Suggestions:', margin + insightBoxPadding, currentY);
-    currentY += lineHeight + 2;
+    currentY += lineHeight + 3;
     
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(...COLORS.text);
     insight.suggestions.forEach(suggestion => {
-      const lines = doc.splitTextToSize('• ' + suggestion, contentWidth - insightBoxPadding * 2 - 5);
+      if (currentY > doc.internal.pageSize.getHeight() - 30) {
+        doc.addPage();
+        currentY = 25;
+      }
+      const lines = doc.splitTextToSize('• ' + suggestion, contentWidth - insightBoxPadding - 10);
       doc.text(lines, margin + insightBoxPadding + 5, currentY);
-      currentY += lines.length * lineHeight;
+      currentY += lines.length * lineHeight + 2;
     });
-    currentY += 3;
+    currentY += 5;
   }
   
   // Doctor Questions
   if (insight.doctorQuestions.length > 0) {
-    if (currentY > doc.internal.pageSize.getHeight() - 40) {
+    if (currentY > doc.internal.pageSize.getHeight() - 50) {
       doc.addPage();
-      currentY = 20;
+      currentY = 25;
     }
     
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...COLORS.primary);
     doc.text('Questions for Your Doctor:', margin + insightBoxPadding, currentY);
-    currentY += lineHeight + 2;
+    currentY += lineHeight + 3;
     
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(...COLORS.text);
     insight.doctorQuestions.forEach(question => {
-      const lines = doc.splitTextToSize('• ' + question, contentWidth - insightBoxPadding * 2 - 5);
+      if (currentY > doc.internal.pageSize.getHeight() - 30) {
+        doc.addPage();
+        currentY = 25;
+      }
+      const lines = doc.splitTextToSize('• ' + question, contentWidth - insightBoxPadding - 10);
       doc.text(lines, margin + insightBoxPadding + 5, currentY);
-      currentY += lines.length * lineHeight;
+      currentY += lines.length * lineHeight + 2;
     });
   }
   
-  return currentY + 8;
+  return currentY + 12;
 }
 
 function addMarkerSection(
@@ -164,7 +208,7 @@ function addMarkerSection(
   // Check for new page
   if (currentY > doc.internal.pageSize.getHeight() - 60) {
     doc.addPage();
-    currentY = 20;
+    currentY = 25;
   }
   
   // Section header
@@ -205,20 +249,16 @@ function addMarkerSection(
       0: { fontStyle: 'bold' },
       3: { fontStyle: 'bold' },
     },
-    didDrawPage: (data) => {
-      // Add footer on each page
-      addFooter(doc);
-    },
   });
   
-  currentY = (doc as any).lastAutoTable.finalY + 5;
+  currentY = (doc as any).lastAutoTable.finalY + 8;
   
   // Add insights for markers that have them
   if (includeInsights) {
     for (const trend of trends) {
       const insight = insights.get(trend.canonicalName);
       if (insight) {
-        currentY = addInsightBlock(doc, insight, currentY, pageWidth);
+        currentY = addInsightBlock(doc, insight, trend.canonicalName, currentY, pageWidth);
       }
     }
   }
@@ -229,14 +269,37 @@ function addMarkerSection(
 function addFooter(doc: jsPDF) {
   const pageHeight = doc.internal.pageSize.getHeight();
   const pageWidth = doc.internal.pageSize.getWidth();
-  const pageCount = doc.getNumberOfPages();
+  const margin = 20;
+  const footerY = pageHeight - 12;
   
+  // Draw activity icon (small)
+  drawActivityIcon(doc, margin, footerY - 4, 8, COLORS.primary);
+  
+  // HealthTrend branding
   doc.setFontSize(8);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...COLORS.primary);
+  doc.text('HealthTrend', margin + 12, footerY);
+  
+  // Privacy tagline
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...COLORS.muted);
+  doc.text(' — Your lab data stays private.', margin + 12 + doc.getTextWidth('HealthTrend'), footerY);
   
-  // Page number
-  doc.text(`Page ${doc.getCurrentPageInfo().pageNumber}`, pageWidth - 25, pageHeight - 10);
+  // Website link (clickable)
+  doc.setTextColor(...COLORS.primary);
+  const linkText = WEBSITE_URL;
+  const linkX = margin;
+  const linkY = footerY + 5;
+  doc.text(linkText, linkX, linkY);
+  
+  // Add clickable link
+  const linkWidth = doc.getTextWidth(linkText);
+  doc.link(linkX, linkY - 3, linkWidth, 4, { url: WEBSITE_URL });
+  
+  // Page number on the right
+  doc.setTextColor(...COLORS.muted);
+  doc.text(`Page ${doc.getCurrentPageInfo().pageNumber}`, pageWidth - margin - 15, footerY);
 }
 
 export async function exportAnalysisPdf(data: ExportData): Promise<void> {
@@ -252,20 +315,33 @@ export async function exportAnalysisPdf(data: ExportData): Promise<void> {
     .map(r => r.reportDate!)
     .sort((a, b) => a.getTime() - b.getTime());
   
-  // Header
+  // Header with branding
   doc.setFillColor(...COLORS.primary);
-  doc.rect(0, 0, pageWidth, 40, 'F');
+  doc.rect(0, 0, pageWidth, 35, 'F');
   
-  doc.setFontSize(20);
+  // Activity icon in header
+  drawActivityIcon(doc, margin, 12, 14, [255, 255, 255]);
+  
+  // HealthTrend title
+  doc.setFontSize(22);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(255, 255, 255);
-  doc.text('HealthTrend Analysis Report', margin, 25);
+  doc.text('HealthTrend', margin + 20, 23);
   
-  doc.setFontSize(10);
+  // Generated date
+  doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
-  doc.text(`Generated: ${format(new Date(), 'MMMM d, yyyy')}`, margin, 35);
+  doc.text(`Generated: ${format(new Date(), 'MMMM d, yyyy')}`, margin + 20, 31);
   
-  currentY = 55;
+  currentY = 45;
+  
+  // Body heading - "Health Trend analysis and insights report"
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...COLORS.text);
+  doc.text('Health Trend analysis and insights report', margin, currentY);
+  
+  currentY += 15;
   
   // Patient Info Box
   doc.setFillColor(...COLORS.background);
@@ -336,24 +412,24 @@ export async function exportAnalysisPdf(data: ExportData): Promise<void> {
   
   // Add disclaimer on last page
   const pageHeight = doc.internal.pageSize.getHeight();
-  if (currentY > pageHeight - 40) {
+  if (currentY > pageHeight - 50) {
     doc.addPage();
-    currentY = 20;
+    currentY = 25;
   }
   
   doc.setFillColor(255, 243, 205);
-  doc.roundedRect(margin, pageHeight - 35, pageWidth - margin * 2, 20, 3, 3, 'F');
+  doc.roundedRect(margin, pageHeight - 45, pageWidth - margin * 2, 20, 3, 3, 'F');
   
   doc.setFontSize(8);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...COLORS.warning);
-  doc.text('DISCLAIMER', margin + 8, pageHeight - 25);
+  doc.text('DISCLAIMER', margin + 8, pageHeight - 35);
   
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...COLORS.text);
   const disclaimer = 'This report is for educational purposes only and does not constitute medical advice. Always consult your healthcare provider for interpretation of lab results.';
   const disclaimerLines = doc.splitTextToSize(disclaimer, pageWidth - margin * 2 - 16);
-  doc.text(disclaimerLines, margin + 8, pageHeight - 20);
+  doc.text(disclaimerLines, margin + 8, pageHeight - 30);
   
   // Add footer to all pages
   const totalPages = doc.getNumberOfPages();
