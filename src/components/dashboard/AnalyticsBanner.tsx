@@ -39,11 +39,9 @@ export const AnalyticsBanner = ({ reports, activeDataset }: AnalyticsBannerProps
     if (isPublicExample) {
       return (
         <>
-          Viewing analytics for <strong className="text-foreground">Dhruv</strong>{' '}
-          <span className="text-amber-600 dark:text-amber-400">(public example)</span>
-          {formattedDates && (
-            <> — <strong className="text-foreground">{formattedDates}</strong></>
-          )}
+          <strong className="text-foreground">You're viewing a live example</strong>{' '}
+          <span className="text-amber-600 dark:text-amber-400">(from real blood reports)</span>.{' '}
+          Upload your own to see your stats.
         </>
       );
     }
