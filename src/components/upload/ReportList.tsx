@@ -51,7 +51,7 @@ export function ReportList({ reports, activeDataset, onRemove, onDateChange }: R
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-medium text-muted-foreground">
-          {isPublicExample ? "Live example (Dhruv's real reports)" : 'Uploaded Reports'}
+          {isPublicExample ? "Live example (real blood reports)" : 'Uploaded Reports'}
         </h3>
         <span className="text-xs text-muted-foreground">
           {reports.length} report{reports.length !== 1 ? 's' : ''}
