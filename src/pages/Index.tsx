@@ -184,7 +184,7 @@ const IndexContent = () => {
             {reports.length > 0 && (
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <AnalyticsBanner reports={reports} activeDataset={activeDataset} />
-                <div className="flex flex-col items-end gap-1">
+                <div className="flex items-center gap-3 sm:flex-col sm:items-end sm:gap-1">
                   <ExportButton 
                     reports={reports}
                     isDemo={isPublicExample}
