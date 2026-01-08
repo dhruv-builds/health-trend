@@ -159,7 +159,7 @@ const IndexContent = () => {
               <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl">
                 <div className="py-3 px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
                   <p className="text-sm text-amber-800 dark:text-amber-200">
-                    <strong>Viewing Dhruv's public example</strong> (real lab reports). 
+                    <strong>Blood analytics</strong> (real lab reports). 
                     Upload yours to see your results.
                   </p>
                   <div className="flex items-center gap-3">
