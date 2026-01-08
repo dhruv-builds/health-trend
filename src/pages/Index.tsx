@@ -70,7 +70,7 @@ const IndexContent = () => {
             <ul className="space-y-3 text-sm text-muted-foreground">
               <li className="flex gap-2">
                 <span className="text-amber-500">•</span>
-                <span>Upload multiple lab PDFs to visualize trends, spot out-of-range markers, and get plain-English insights on what to do next.</span>
+                <span className="text-amber-600 dark:text-amber-400 font-semibold">Upload multiple lab PDFs to visualize trends, spot out-of-range markers, and get plain-English insights on what to do next.</span>
               </li>
               <li className="flex gap-2">
                 <span className="text-primary">•</span>
