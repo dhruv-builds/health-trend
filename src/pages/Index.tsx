@@ -9,6 +9,7 @@ import { MarkerSections } from '@/components/dashboard/MarkerSections';
 import { AnalyticsBanner } from '@/components/dashboard/AnalyticsBanner';
 import { ExportButton } from '@/components/dashboard/ExportButton';
 import { FloatingExportButton } from '@/components/dashboard/FloatingExportButton';
+import { ProcessingModal } from '@/components/upload/ProcessingModal';
 import { InsightsProvider, useInsightsContext } from '@/contexts/InsightsContext';
 import { Button } from '@/components/ui/button';
 import {
@@ -25,12 +26,15 @@ const IndexContent = () => {
   const { clearInsights } = useInsightsContext();
   const [showHowItWorks, setShowHowItWorks] = useState(false);
   const [showFloatingExport, setShowFloatingExport] = useState(false);
+  const [processingFile, setProcessingFile] = useState<string | null>(null);
   const dropzoneRef = useRef<HTMLDivElement>(null);
   const markersSectionRef = useRef<HTMLDivElement>(null);
 
   const handleFilesSelected = async (files: File[]) => {
     for (const file of files) {
+      setProcessingFile(file.name);
       await addReport(file);
+      setProcessingFile(null);
     }
   };
 
@@ -83,6 +87,9 @@ const IndexContent = () => {
 
   return (
     <>
+      {/* Processing Modal */}
+      {processingFile && <ProcessingModal fileName={processingFile} />}
+
       <Dialog open={showHowItWorks} onOpenChange={setShowHowItWorks}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
