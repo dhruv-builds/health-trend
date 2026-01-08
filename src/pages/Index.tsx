@@ -1,4 +1,4 @@
-import { useMemo, useState, useRef } from 'react';
+import { useMemo, useState, useRef, useEffect } from 'react';
 import { Activity, Shield, Upload } from 'lucide-react';
 import { useLabData } from '@/hooks/useLabData';
 import { calculateTrends, categorizeTrends } from '@/lib/trends';
@@ -8,6 +8,7 @@ import { StatsBar } from '@/components/dashboard/StatsBar';
 import { MarkerSections } from '@/components/dashboard/MarkerSections';
 import { AnalyticsBanner } from '@/components/dashboard/AnalyticsBanner';
 import { ExportButton } from '@/components/dashboard/ExportButton';
+import { FloatingExportButton } from '@/components/dashboard/FloatingExportButton';
 import { InsightsProvider, useInsightsContext } from '@/contexts/InsightsContext';
 import { Button } from '@/components/ui/button';
 import {
@@ -23,7 +24,9 @@ const IndexContent = () => {
   const { reports, activeDataset, addReport, removeReport, updateReportDate, clearAllReports, showPublicExample } = useLabData();
   const { clearInsights } = useInsightsContext();
   const [showHowItWorks, setShowHowItWorks] = useState(false);
+  const [showFloatingExport, setShowFloatingExport] = useState(false);
   const dropzoneRef = useRef<HTMLDivElement>(null);
+  const markersSectionRef = useRef<HTMLDivElement>(null);
 
   const handleFilesSelected = async (files: File[]) => {
     for (const file of files) {
@@ -57,9 +60,29 @@ const IndexContent = () => {
 
   const isPublicExample = activeDataset === 'public_dhruv';
 
+  // Show floating export button when markers section is in view and user has uploaded their own reports
+  useEffect(() => {
+    if (isPublicExample) {
+      setShowFloatingExport(false);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setShowFloatingExport(entry.isIntersecting);
+      },
+      { threshold: 0.1 }
+    );
+
+    if (markersSectionRef.current) {
+      observer.observe(markersSectionRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [isPublicExample]);
+
   return (
     <>
-      {/* How it works modal */}
       <Dialog open={showHowItWorks} onOpenChange={setShowHowItWorks}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -208,13 +231,26 @@ const IndexContent = () => {
             />
 
             {/* Markers Dashboard */}
-            <MarkerSections 
-              outOfRange={outOfRange}
-              worsening={worsening}
-              other={other}
-            />
+            <div ref={markersSectionRef}>
+              <MarkerSections 
+                outOfRange={outOfRange}
+                worsening={worsening}
+                other={other}
+              />
+            </div>
           </div>
         </main>
+
+        {/* Floating Export Button */}
+        {!isPublicExample && (
+          <FloatingExportButton
+            reports={reports}
+            outOfRange={outOfRange}
+            worsening={worsening}
+            other={other}
+            isVisible={showFloatingExport}
+          />
+        )}
 
         {/* Footer */}
         <footer className="border-t bg-card/30 py-6 mt-12">
