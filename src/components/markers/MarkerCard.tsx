@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { TrendingUp, TrendingDown, Minus, AlertTriangle, AlertCircle, Sparkles, Loader2 } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Eye, AlertCircle, Sparkles, Loader2 } from 'lucide-react';
 import { TrendData, MarkerInsight } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { LineChart, Line, ResponsiveContainer, ReferenceLine } from 'recharts';
@@ -80,8 +80,8 @@ export function MarkerCard({ trend, showAIInsights = true }: MarkerCardProps) {
           border: 'border-warning/30',
           bg: 'bg-warning/5',
           badge: 'bg-warning text-warning-foreground',
-          badgeText: 'Worsening',
-          icon: AlertTriangle,
+          badgeText: 'Near Limit',
+          icon: Eye,
         };
       default:
         return {

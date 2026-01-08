@@ -31,7 +31,7 @@ function formatValue(val: number): string {
 function getStatusLabel(status: TrendData['status']): string {
   switch (status) {
     case 'out_of_range': return 'OUT OF RANGE';
-    case 'worsening': return 'WORSENING';
+    case 'worsening': return 'NEAR LIMIT';
     default: return 'WITHIN RANGE';
   }
 }
@@ -325,13 +325,13 @@ export async function exportAnalysisPdf(data: ExportData): Promise<void> {
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...COLORS.muted);
-  doc.text('Worsening Trends', margin + colWidth * 2 + colWidth / 2, summaryY + 4, { align: 'center' });
+  doc.text('Near Limit', margin + colWidth * 2 + colWidth / 2, summaryY + 4, { align: 'center' });
   
   currentY += 30;
   
   // Marker Sections
   currentY = addMarkerSection(doc, 'OUT OF RANGE MARKERS', data.outOfRange, data.insights, currentY, COLORS.destructive);
-  currentY = addMarkerSection(doc, 'WORSENING TRENDS', data.worsening, data.insights, currentY, COLORS.warning);
+  currentY = addMarkerSection(doc, 'TRENDS TO MONITOR', data.worsening, data.insights, currentY, COLORS.warning);
   currentY = addMarkerSection(doc, 'OTHER MARKERS', data.other, data.insights, currentY, COLORS.muted, false);
   
   // Add disclaimer on last page
