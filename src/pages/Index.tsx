@@ -254,9 +254,20 @@ const IndexContent = () => {
 
         {/* Footer */}
         <footer className="border-t bg-card/30 py-6 mt-12">
-          <div className="container max-w-6xl px-4">
-            <p className="text-sm text-muted-foreground text-center">
+          <div className="container max-w-6xl px-4 text-center">
+            <p className="text-sm text-muted-foreground">
               HealthTrend — Your lab data stays private. No accounts, no servers, no storage.
+            </p>
+            <p className="text-sm text-muted-foreground mt-3">
+              For any feedback please reach out to{' '}
+              <a 
+                href="https://www.linkedin.com/in/sondhidhruv/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="font-bold hover:underline"
+              >
+                Dhruv Sondhi
+              </a>
             </p>
           </div>
         </footer>
