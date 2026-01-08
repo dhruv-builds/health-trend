@@ -118,8 +118,8 @@ const IndexContent = () => {
               </h1>
             </div>
             <p className="text-muted-foreground max-w-xl">
-              Upload your lab reports to visualize trends, identify out-of-range markers, 
-              and track changes over time. Your data stays in your browser.{' '}
+              Visualize your blood work history in seconds. See trends, understand ranges, 
+              and get plain-English insights. Private, secure, and processed entirely on your device.{' '}
               <button
                 onClick={() => setShowHowItWorks(true)}
                 className="text-primary hover:underline font-medium"
