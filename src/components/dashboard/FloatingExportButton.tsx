@@ -26,6 +26,14 @@ export function FloatingExportButton({
   const { getAllInsights } = useInsightsContext();
 
   const handleExport = async () => {
+    // Check if any markers are detected
+    const totalMarkers = outOfRange.length + worsening.length + other.length;
+    
+    if (totalMarkers === 0) {
+      toast.error('No markers detected. Please make sure a lab report is uploaded.');
+      return;
+    }
+
     setIsExporting(true);
     
     try {

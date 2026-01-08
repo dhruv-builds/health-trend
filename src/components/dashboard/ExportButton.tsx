@@ -20,6 +20,24 @@ export function ExportButton({ reports, isDemo, outOfRange, worsening, other }: 
   const { getAllInsights } = useInsightsContext();
 
   const handleExport = async () => {
+    // Check if any markers are detected
+    const totalMarkers = outOfRange.length + worsening.length + other.length;
+    
+    if (totalMarkers === 0) {
+      toast.error('No markers detected. Please make sure a lab report is uploaded.', {
+        action: {
+          label: 'Upload',
+          onClick: () => {
+            const dropZone = document.querySelector('[data-dropzone]');
+            if (dropZone) {
+              dropZone.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          },
+        },
+      });
+      return;
+    }
+
     if (isDemo) {
       toast.info('Upload your blood reports first to export analysis', {
         action: {
