@@ -17,7 +17,7 @@ interface MarkerCardProps {
 export function MarkerCard({ trend, showAIInsights = true }: MarkerCardProps) {
   const [showInsights, setShowInsights] = useState(false);
   const { getInsights, isLoading, error } = useMarkerInsights();
-  const { getInsight, setInsight: setContextInsight } = useInsightsContext();
+  const { getInsight, setInsight: setContextInsight, incrementInsightClickCount } = useInsightsContext();
   
   // Get insight from context
   const insight = getInsight(trend.canonicalName) || null;
@@ -51,6 +51,7 @@ export function MarkerCard({ trend, showAIInsights = true }: MarkerCardProps) {
     if (result) {
       setContextInsight(trend.canonicalName, result);
       setShowInsights(true);
+      incrementInsightClickCount();
     }
   };
 
