@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { TrendingUp, TrendingDown, Minus, Eye, AlertCircle, Loader2 } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Eye, AlertCircle, Loader2, Sparkles } from 'lucide-react';
 import { TrendData, MarkerInsight } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { LineChart, Line, ResponsiveContainer, ReferenceLine } from 'recharts';
@@ -237,9 +237,12 @@ export function MarkerCard({ trend, showAIInsights = true }: MarkerCardProps) {
                 Analyzing...
               </>
             ) : (
-              <>
-                {insight && showInsights ? 'Hide explanation' : '✨ Explain this result'}
-              </>
+              insight && showInsights ? 'Hide explanation' : (
+                <>
+                  <Sparkles className="w-3 h-3 text-foreground" />
+                  Explain this result
+                </>
+              )
             )}
           </Button>
 
