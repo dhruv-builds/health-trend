@@ -1,5 +1,5 @@
-import { useCallback, useState } from 'react';
-import { Upload, FileText, X } from 'lucide-react';
+import { useCallback, useState, useRef } from 'react';
+import { Upload, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface DropZoneProps {
@@ -9,6 +9,7 @@ interface DropZoneProps {
 
 export function DropZone({ onFilesSelected, disabled }: DropZoneProps) {
   const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -43,21 +44,38 @@ export function DropZone({ onFilesSelected, disabled }: DropZoneProps) {
     e.target.value = '';
   }, [onFilesSelected]);
 
+  const handleClick = useCallback(() => {
+    if (!disabled && fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  }, [disabled]);
+
   return (
     <div
       data-dropzone
       className={cn(
-        'relative rounded-xl border-2 border-dashed p-8 transition-all duration-200',
+        'relative rounded-xl border-2 border-dashed p-8 transition-all duration-200 cursor-pointer',
         'flex flex-col items-center justify-center gap-4 text-center',
         isDragging 
           ? 'border-primary bg-primary/5 scale-[1.02]' 
           : 'border-border hover:border-primary/50 hover:bg-accent/30',
         disabled && 'opacity-50 cursor-not-allowed'
       )}
+      onClick={handleClick}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".pdf"
+        multiple
+        className="sr-only"
+        onChange={handleFileInput}
+        disabled={disabled}
+      />
+
       <div className={cn(
         'w-16 h-16 rounded-full flex items-center justify-center transition-colors',
         isDragging ? 'bg-primary text-primary-foreground' : 'bg-secondary text-primary'
@@ -75,22 +93,13 @@ export function DropZone({ onFilesSelected, disabled }: DropZoneProps) {
         </p>
       </div>
 
-      <label className={cn(
-        'inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors cursor-pointer',
+      <div className={cn(
+        'inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors',
         'bg-primary text-primary-foreground hover:bg-primary/90',
-        disabled && 'pointer-events-none'
       )}>
         <FileText className="w-4 h-4" />
         Browse Files
-        <input
-          type="file"
-          accept=".pdf"
-          multiple
-          className="sr-only"
-          onChange={handleFileInput}
-          disabled={disabled}
-        />
-      </label>
+      </div>
 
       <p className="text-xs text-muted-foreground">
         PDF files only • No data stored on our servers
