@@ -23,12 +23,17 @@ import { toast } from 'sonner';
 
 const IndexContent = () => {
   const { reports, activeDataset, addReport, removeReport, updateReportDate, clearAllReports, showPublicExample } = useLabData();
-  const { clearInsights } = useInsightsContext();
+  const { clearInsights, insightClickCount } = useInsightsContext();
   const [showHowItWorks, setShowHowItWorks] = useState(false);
   const [showFloatingExport, setShowFloatingExport] = useState(false);
   const [processingFile, setProcessingFile] = useState<string | null>(null);
+  const [pdfParseCompletedAt, setPdfParseCompletedAt] = useState<Date | null>(null);
+  const [hasClickedExport, setHasClickedExport] = useState(false);
+  const [showExportNudge, setShowExportNudge] = useState(false);
   const dropzoneRef = useRef<HTMLDivElement>(null);
   const markersSectionRef = useRef<HTMLDivElement>(null);
+  
+  const isPublicExample = activeDataset === 'public_dhruv';
 
   const handleFilesSelected = async (files: File[]) => {
     for (const file of files) {
@@ -60,9 +65,54 @@ const IndexContent = () => {
     clearAllReports();
     clearInsights();
     showPublicExample();
+    // Reset nudge state when switching back
+    setPdfParseCompletedAt(null);
+    setHasClickedExport(false);
+    setShowExportNudge(false);
   };
 
-  const isPublicExample = activeDataset === 'public_dhruv';
+  // Track when PDF parsing completes for user uploads
+  useEffect(() => {
+    if (isPublicExample) {
+      setPdfParseCompletedAt(null);
+      return;
+    }
+    
+    const userReports = reports.filter(r => r.rows && r.rows.length > 0);
+    if (userReports.length > 0 && !pdfParseCompletedAt) {
+      setPdfParseCompletedAt(new Date());
+    }
+  }, [reports, isPublicExample, pdfParseCompletedAt]);
+
+  // Trigger export nudge based on conditions
+  useEffect(() => {
+    if (hasClickedExport || showExportNudge || isPublicExample || !showFloatingExport) return;
+    
+    // Condition 1: 3+ insight clicks
+    if (insightClickCount >= 3) {
+      setShowExportNudge(true);
+      return;
+    }
+    
+    // Condition 2: 15 seconds after parse
+    if (pdfParseCompletedAt) {
+      const timer = setTimeout(() => {
+        if (!hasClickedExport) {
+          setShowExportNudge(true);
+        }
+      }, 15000);
+      return () => clearTimeout(timer);
+    }
+  }, [insightClickCount, pdfParseCompletedAt, hasClickedExport, showExportNudge, isPublicExample, showFloatingExport]);
+
+  const handleExportClick = () => {
+    setHasClickedExport(true);
+    setShowExportNudge(false);
+  };
+
+  const handleDismissNudge = () => {
+    setShowExportNudge(false);
+  };
 
   // Show floating export button when markers section is in view and user has uploaded their own reports
   useEffect(() => {
@@ -256,6 +306,9 @@ const IndexContent = () => {
             worsening={worsening}
             other={other}
             isVisible={showFloatingExport}
+            showNudge={showExportNudge}
+            onDismissNudge={handleDismissNudge}
+            onExportClick={handleExportClick}
           />
         )}
 
