@@ -94,13 +94,13 @@ const IndexContent = () => {
       return;
     }
     
-    // Condition 2: 15 seconds after parse
+    // Condition 2: 30 seconds after parse
     if (pdfParseCompletedAt) {
       const timer = setTimeout(() => {
         if (!hasClickedExport) {
           setShowExportNudge(true);
         }
-      }, 15000);
+      }, 30000);
       return () => clearTimeout(timer);
     }
   }, [insightClickCount, pdfParseCompletedAt, hasClickedExport, showExportNudge, isPublicExample, showFloatingExport]);
