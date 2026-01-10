@@ -63,8 +63,10 @@ function drawActivityIcon(doc: jsPDF, x: number, y: number, size: number, color:
 
 function addInsightBlock(doc: jsPDF, insight: MarkerInsight, markerName: string, startY: number, pageWidth: number): number {
   const margin = 20;
-  const contentWidth = pageWidth - margin * 2 - 10; // Extra margin buffer
+  const contentWidth = pageWidth - margin * 2; // Full width between margins
   const insightBoxPadding = 10;
+  const bulletIndent = 5;
+  const safetyBuffer = 5;
   const lineHeight = 5;
   
   let currentY = startY + 8;
@@ -106,7 +108,7 @@ function addInsightBlock(doc: jsPDF, insight: MarkerInsight, markerName: string,
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...COLORS.text);
-  const explanationLines = doc.splitTextToSize(insight.explanation, contentWidth - insightBoxPadding);
+  const explanationLines = doc.splitTextToSize(insight.explanation, contentWidth - insightBoxPadding * 2 - safetyBuffer);
   doc.text(explanationLines, margin + insightBoxPadding, currentY);
   currentY += explanationLines.length * lineHeight + 8;
   
@@ -129,7 +131,7 @@ function addInsightBlock(doc: jsPDF, insight: MarkerInsight, markerName: string,
         doc.addPage();
         currentY = 25;
       }
-      const lines = doc.splitTextToSize('• ' + concern, contentWidth - insightBoxPadding - 10);
+      const lines = doc.splitTextToSize('• ' + concern, contentWidth - insightBoxPadding * 2 - bulletIndent - safetyBuffer);
       doc.text(lines, margin + insightBoxPadding + 5, currentY);
       currentY += lines.length * lineHeight + 2;
     });
@@ -155,7 +157,7 @@ function addInsightBlock(doc: jsPDF, insight: MarkerInsight, markerName: string,
         doc.addPage();
         currentY = 25;
       }
-      const lines = doc.splitTextToSize('• ' + suggestion, contentWidth - insightBoxPadding - 10);
+      const lines = doc.splitTextToSize('• ' + suggestion, contentWidth - insightBoxPadding * 2 - bulletIndent - safetyBuffer);
       doc.text(lines, margin + insightBoxPadding + 5, currentY);
       currentY += lines.length * lineHeight + 2;
     });
@@ -181,7 +183,7 @@ function addInsightBlock(doc: jsPDF, insight: MarkerInsight, markerName: string,
         doc.addPage();
         currentY = 25;
       }
-      const lines = doc.splitTextToSize('• ' + question, contentWidth - insightBoxPadding - 10);
+      const lines = doc.splitTextToSize('• ' + question, contentWidth - insightBoxPadding * 2 - bulletIndent - safetyBuffer);
       doc.text(lines, margin + insightBoxPadding + 5, currentY);
       currentY += lines.length * lineHeight + 2;
     });
