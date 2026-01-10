@@ -82,8 +82,8 @@ function validateMarkerData(marker: any): { valid: boolean; error?: string } {
     return { valid: false, error: 'Missing or invalid canonicalName' };
   }
 
-  // Validate canonicalName length and format (allow letters, numbers, spaces, hyphens, slashes)
-  if (marker.canonicalName.length > 200 || !/^[a-zA-Z0-9\s\/-]+$/.test(marker.canonicalName)) {
+  // Validate canonicalName length and format (allow common medical terminology characters)
+  if (marker.canonicalName.length > 200 || !/^[a-zA-Z0-9\s\-\/(),.:;%#'+]+$/.test(marker.canonicalName)) {
     return { valid: false, error: 'Invalid marker name format' };
   }
 
@@ -240,18 +240,49 @@ Please provide insights about this lab result.`;
     // Parse the JSON response
     let insights;
     try {
+      // Remove markdown code fences if present
+      let cleanContent = content
+        .replace(/```json\s*/gi, '')
+        .replace(/```\s*/g, '')
+        .trim();
+      
       // Try to extract JSON from the response
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      const jsonMatch = cleanContent.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
-        insights = JSON.parse(jsonMatch[0]);
+        const parsed = JSON.parse(jsonMatch[0]);
+        
+        // Validate structure - ensure all required fields exist
+        if (typeof parsed.explanation === 'string' && 
+            Array.isArray(parsed.concerns) && 
+            Array.isArray(parsed.suggestions) && 
+            Array.isArray(parsed.doctorQuestions)) {
+          insights = parsed;
+        } else {
+          throw new Error('Invalid response structure');
+        }
       } else {
         throw new Error('No JSON found in response');
       }
     } catch (parseError) {
       console.error('Failed to parse AI response:', parseError, content);
-      // Return a fallback structure
+      
+      // Clean fallback - remove JSON artifacts from display
+      let cleanExplanation = content
+        .replace(/```json\s*/gi, '')
+        .replace(/```\s*/g, '')
+        .replace(/^\s*\{\s*"explanation"\s*:\s*"/i, '')  // Remove JSON prefix
+        .replace(/"\s*,?\s*"concerns"\s*:[\s\S]*$/i, '') // Remove remaining JSON
+        .replace(/"\s*\}\s*$/i, '')  // Remove JSON suffix
+        .slice(0, 500)
+        .trim();
+      
+      // If cleaning didn't help, use a generic fallback
+      if (cleanExplanation.length < 20 || cleanExplanation.includes('{')) {
+        cleanExplanation = `Information about ${marker.canonicalName} is being processed. Please try again.`;
+      }
+      
       insights = {
-        explanation: content.slice(0, 300),
+        explanation: cleanExplanation,
         concerns: [],
         suggestions: [],
         doctorQuestions: []

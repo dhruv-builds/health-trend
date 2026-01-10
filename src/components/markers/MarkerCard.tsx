@@ -248,7 +248,13 @@ export function MarkerCard({ trend, showAIInsights = true }: MarkerCardProps) {
           </Button>
 
           {error && (
-            <p className="text-xs text-destructive text-center mt-2">{error}</p>
+            <p className="text-xs text-destructive text-center mt-2">
+              {error.includes('non-2xx') 
+                ? 'Unable to analyze this result. Please try again.'
+                : error.includes('Rate limit') || error.includes('Too many requests')
+                  ? 'Too many requests. Please wait a moment.'
+                  : 'Unable to load insights. Please try again.'}
+            </p>
           )}
 
           {showInsights && insight && (
