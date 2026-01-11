@@ -38,6 +38,17 @@ function getStatusLabel(status: TrendData['status']): string {
   }
 }
 
+// Sanitize text to replace problematic characters that cause rendering issues
+function sanitizeText(text: string): string {
+  return text
+    .replace(/[\u2018\u2019]/g, "'")  // Smart single quotes
+    .replace(/[\u201C\u201D]/g, '"')  // Smart double quotes
+    .replace(/\u2013/g, '-')          // En-dash
+    .replace(/\u2014/g, '--')         // Em-dash
+    .replace(/\u2026/g, '...')        // Ellipsis
+    .replace(/\u00A0/g, ' ');         // Non-breaking space
+}
+
 // Draw an activity/chart icon using PDF primitives
 function drawActivityIcon(doc: jsPDF, x: number, y: number, size: number, color: [number, number, number] = [255, 255, 255]) {
   doc.setDrawColor(...color);
@@ -63,11 +74,14 @@ function drawActivityIcon(doc: jsPDF, x: number, y: number, size: number, color:
 
 function addInsightBlock(doc: jsPDF, insight: MarkerInsight, markerName: string, startY: number, pageWidth: number): number {
   const margin = 20;
-  const contentWidth = pageWidth - margin * 2; // Full width between margins
-  const insightBoxPadding = 10;
-  const bulletIndent = 5;
-  const safetyBuffer = 5;
+  const contentWidth = pageWidth - margin * 2;
   const lineHeight = 5;
+  
+  // Consistent layout constants - ensure positioning matches wrapping
+  const textLeftX = margin + 10;                    // Where text actually starts
+  const textMaxWidth = contentWidth - 20;           // Actual available width for text
+  const bulletLeftX = margin + 16;                  // Where bullet text starts (after bullet char)
+  const bulletMaxWidth = contentWidth - 28;         // Width for bullet text (accounting for indent)
   
   let currentY = startY + 8;
   
@@ -82,34 +96,35 @@ function addInsightBlock(doc: jsPDF, insight: MarkerInsight, markerName: string,
   doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...COLORS.text);
-  doc.text(markerName, margin, currentY);
+  doc.text(markerName, margin, currentY, { align: 'left' });
   currentY += 8;
   
   // Draw insight box background
   doc.setFillColor(...COLORS.background);
-  doc.roundedRect(margin, currentY, contentWidth + 10, 12, 2, 2, 'F');
+  doc.roundedRect(margin, currentY, contentWidth, 12, 2, 2, 'F');
   
   // AI Insights header
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...COLORS.primary);
-  doc.text('AI Insights', margin + insightBoxPadding, currentY + 8);
+  doc.text('AI Insights', textLeftX, currentY + 8, { align: 'left' });
   
   // Confidence badge
   const confidenceText = insight.confidence.toUpperCase() + ' CONFIDENCE';
   doc.setFontSize(7);
   doc.setTextColor(...COLORS.muted);
-  const confidenceWidth = doc.getTextWidth(confidenceText);
-  doc.text(confidenceText, pageWidth - margin - insightBoxPadding - confidenceWidth, currentY + 8);
+  doc.text(confidenceText, margin + contentWidth - 10, currentY + 8, { align: 'right' });
   
   currentY += 18;
   
-  // Explanation
+  // Explanation - render each line individually with explicit alignment
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...COLORS.text);
-  const explanationLines = doc.splitTextToSize(insight.explanation, contentWidth - insightBoxPadding * 2 - safetyBuffer);
-  doc.text(explanationLines, margin + insightBoxPadding, currentY);
+  const explanationLines = doc.splitTextToSize(sanitizeText(insight.explanation), textMaxWidth);
+  explanationLines.forEach((line: string, index: number) => {
+    doc.text(line, textLeftX, currentY + (index * lineHeight), { align: 'left' });
+  });
   currentY += explanationLines.length * lineHeight + 8;
   
   // Concerns
@@ -121,7 +136,7 @@ function addInsightBlock(doc: jsPDF, insight: MarkerInsight, markerName: string,
     
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...COLORS.warning);
-    doc.text('Potential Concerns:', margin + insightBoxPadding, currentY);
+    doc.text('Potential Concerns:', textLeftX, currentY, { align: 'left' });
     currentY += lineHeight + 3;
     
     doc.setFont('helvetica', 'normal');
@@ -131,8 +146,13 @@ function addInsightBlock(doc: jsPDF, insight: MarkerInsight, markerName: string,
         doc.addPage();
         currentY = 25;
       }
-      const lines = doc.splitTextToSize('• ' + concern, contentWidth - insightBoxPadding * 2 - bulletIndent - safetyBuffer);
-      doc.text(lines, margin + insightBoxPadding + 5, currentY);
+      // Draw bullet character separately
+      doc.text('\u2022', bulletLeftX - 6, currentY, { align: 'left' });
+      // Wrap and render text with explicit alignment
+      const lines = doc.splitTextToSize(sanitizeText(concern), bulletMaxWidth);
+      lines.forEach((line: string, index: number) => {
+        doc.text(line, bulletLeftX, currentY + (index * lineHeight), { align: 'left' });
+      });
       currentY += lines.length * lineHeight + 2;
     });
     currentY += 5;
@@ -147,7 +167,7 @@ function addInsightBlock(doc: jsPDF, insight: MarkerInsight, markerName: string,
     
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...COLORS.success);
-    doc.text('Suggestions:', margin + insightBoxPadding, currentY);
+    doc.text('Suggestions:', textLeftX, currentY, { align: 'left' });
     currentY += lineHeight + 3;
     
     doc.setFont('helvetica', 'normal');
@@ -157,8 +177,13 @@ function addInsightBlock(doc: jsPDF, insight: MarkerInsight, markerName: string,
         doc.addPage();
         currentY = 25;
       }
-      const lines = doc.splitTextToSize('• ' + suggestion, contentWidth - insightBoxPadding * 2 - bulletIndent - safetyBuffer);
-      doc.text(lines, margin + insightBoxPadding + 5, currentY);
+      // Draw bullet character separately
+      doc.text('\u2022', bulletLeftX - 6, currentY, { align: 'left' });
+      // Wrap and render text with explicit alignment
+      const lines = doc.splitTextToSize(sanitizeText(suggestion), bulletMaxWidth);
+      lines.forEach((line: string, index: number) => {
+        doc.text(line, bulletLeftX, currentY + (index * lineHeight), { align: 'left' });
+      });
       currentY += lines.length * lineHeight + 2;
     });
     currentY += 5;
@@ -173,7 +198,7 @@ function addInsightBlock(doc: jsPDF, insight: MarkerInsight, markerName: string,
     
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...COLORS.primary);
-    doc.text('Questions for Your Doctor:', margin + insightBoxPadding, currentY);
+    doc.text('Questions for Your Doctor:', textLeftX, currentY, { align: 'left' });
     currentY += lineHeight + 3;
     
     doc.setFont('helvetica', 'normal');
@@ -183,8 +208,13 @@ function addInsightBlock(doc: jsPDF, insight: MarkerInsight, markerName: string,
         doc.addPage();
         currentY = 25;
       }
-      const lines = doc.splitTextToSize('• ' + question, contentWidth - insightBoxPadding * 2 - bulletIndent - safetyBuffer);
-      doc.text(lines, margin + insightBoxPadding + 5, currentY);
+      // Draw bullet character separately
+      doc.text('\u2022', bulletLeftX - 6, currentY, { align: 'left' });
+      // Wrap and render text with explicit alignment
+      const lines = doc.splitTextToSize(sanitizeText(question), bulletMaxWidth);
+      lines.forEach((line: string, index: number) => {
+        doc.text(line, bulletLeftX, currentY + (index * lineHeight), { align: 'left' });
+      });
       currentY += lines.length * lineHeight + 2;
     });
   }
