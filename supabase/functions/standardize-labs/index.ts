@@ -45,19 +45,72 @@ function isRateLimited(ip: string): boolean {
 const systemPrompt = `You are a medical lab report parser. Extract lab test data from the provided text and return structured JSON.
 
 For each lab test found, extract:
-- testName: Normalize to canonical names (e.g., "Hemoglobin", "Glucose Fasting", "Total Cholesterol", "HDL Cholesterol", "LDL Cholesterol", "Triglycerides", "TSH", "T3", "T4", "Vitamin D", "Vitamin B12", "Iron", "Ferritin", "Creatinine", "Urea", "Uric Acid", "Sodium", "Potassium", "Calcium", "SGOT/AST", "SGPT/ALT", "Bilirubin Total", "Alkaline Phosphatase", "Total Protein", "Albumin", "HbA1c", "WBC", "RBC", "Platelet Count", "ESR")
+- testName: Normalize to canonical names (e.g., "Hemoglobin", "Glucose Fasting", "Total Cholesterol", "HDL Cholesterol", "LDL Cholesterol", "Triglycerides", "TSH", "T3", "T4", "Vitamin D", "Vitamin B12", "Iron", "Ferritin", "Creatinine", "Urea", "Uric Acid", "Sodium", "Potassium", "Calcium", "SGOT/AST", "SGPT/ALT", "Bilirubin Total", "Alkaline Phosphatase", "Total Protein", "Albumin", "HbA1c", "WBC", "RBC", "Platelet Count", "ESR", "Non HDL Cholesterol", "MCHC", "MCV", "MCH")
 - value: The numeric result (just the number)
 - unit: The measurement unit (e.g., "g/dL", "mg/dL", "mIU/L", "ng/mL", "mmol/L")
-- refLow: Lower bound of reference range (number or null)
-- refHigh: Upper bound of reference range (number or null)
+- refLow: Lower bound of reference range (number or null if only upper bound exists)
+- refHigh: Upper bound of reference range (number or null if only lower bound exists)
+
+CRITICAL: Pay careful attention to reference ranges. You MUST extract both bounds when available:
+- "30-100" or "30 - 100" means refLow=30, refHigh=100
+- "30.0-100.0" means refLow=30, refHigh=100
+- "< 100" or "<100" means refLow=null, refHigh=100
+- "> 30" or ">30" means refLow=30, refHigh=null
+- "0-130" means refLow=0, refHigh=130
+- "Deficient: <20, Insufficient: 20-29, Sufficient: 30-100" means refLow=30, refHigh=100 (use sufficient range)
 
 Return ONLY a JSON array of objects with these fields. No markdown, no explanation.
 
 Example output:
 [
+  {"testName": "Vitamin D", "value": 28.2, "unit": "ng/mL", "refLow": 30, "refHigh": 100},
+  {"testName": "LDL Cholesterol", "value": 119, "unit": "mg/dL", "refLow": null, "refHigh": 100},
+  {"testName": "HDL Cholesterol", "value": 45, "unit": "mg/dL", "refLow": 40, "refHigh": null},
   {"testName": "Hemoglobin", "value": 14.2, "unit": "g/dL", "refLow": 13.5, "refHigh": 17.5},
-  {"testName": "Glucose Fasting", "value": 95, "unit": "mg/dL", "refLow": 70, "refHigh": 100}
+  {"testName": "Non HDL Cholesterol", "value": 134, "unit": "mg/dL", "refLow": null, "refHigh": 130}
 ]`;
+
+// Known reference ranges fallback for common tests when AI extraction fails
+const KNOWN_REFERENCE_RANGES: Record<string, { refLow: number | null; refHigh: number | null }> = {
+  'Vitamin D': { refLow: 30, refHigh: 100 },
+  'LDL Cholesterol': { refLow: null, refHigh: 100 },
+  'HDL Cholesterol': { refLow: 40, refHigh: null },
+  'Total Cholesterol': { refLow: null, refHigh: 200 },
+  'Triglycerides': { refLow: null, refHigh: 150 },
+  'Non HDL Cholesterol': { refLow: null, refHigh: 130 },
+  'VLDL': { refLow: null, refHigh: 30 },
+  'Hemoglobin': { refLow: 12, refHigh: 17.5 },
+  'HbA1c': { refLow: null, refHigh: 5.7 },
+  'Glucose Fasting': { refLow: 70, refHigh: 100 },
+  'TSH': { refLow: 0.4, refHigh: 4.0 },
+  'Creatinine': { refLow: 0.6, refHigh: 1.2 },
+  'MCHC': { refLow: 31.5, refHigh: 34.5 },
+  'MCV': { refLow: 80, refHigh: 100 },
+  'MCH': { refLow: 27, refHigh: 33 },
+  'WBC': { refLow: 4000, refHigh: 11000 },
+  'RBC': { refLow: 4.5, refHigh: 5.5 },
+  'Platelet Count': { refLow: 150000, refHigh: 400000 },
+  'Hematocrit': { refLow: 36, refHigh: 50 },
+  'ESR': { refLow: null, refHigh: 20 },
+  'SGOT/AST': { refLow: null, refHigh: 40 },
+  'SGPT/ALT': { refLow: null, refHigh: 40 },
+  'Bilirubin Total': { refLow: null, refHigh: 1.2 },
+  'Alkaline Phosphatase': { refLow: 44, refHigh: 147 },
+  'Total Protein': { refLow: 6.0, refHigh: 8.3 },
+  'Albumin': { refLow: 3.5, refHigh: 5.0 },
+  'Urea': { refLow: 7, refHigh: 20 },
+  'Uric Acid': { refLow: 3.5, refHigh: 7.2 },
+  'Sodium': { refLow: 136, refHigh: 145 },
+  'Potassium': { refLow: 3.5, refHigh: 5.0 },
+  'Calcium': { refLow: 8.5, refHigh: 10.5 },
+  'Vitamin B12': { refLow: 200, refHigh: 900 },
+  'Iron': { refLow: 60, refHigh: 170 },
+  'Ferritin': { refLow: 12, refHigh: 300 },
+  'T3': { refLow: 80, refHigh: 200 },
+  'T4': { refLow: 5.1, refHigh: 14.1 },
+  'Free T3': { refLow: 2.0, refHigh: 4.4 },
+  'Free T4': { refLow: 0.82, refHigh: 1.77 },
+};
 
 
 serve(async (req) => {
@@ -272,6 +325,15 @@ serve(async (req) => {
       'TIBC': 'Vitamins & Minerals',
     };
 
+    // Validate each item has required fields
+    labData = labData.filter((item: any) => {
+      if (!item.testName || item.value === undefined) {
+        console.warn('Skipping invalid lab item:', item);
+        return false;
+      }
+      return true;
+    });
+
     const labRows = labData.map((item: any, index: number) => {
       const rawValue = typeof item.value === 'number' ? item.value : parseFloat(item.value);
       const rawRefLow = item.refLow != null ? (typeof item.refLow === 'number' ? item.refLow : parseFloat(item.refLow)) : null;
@@ -279,8 +341,26 @@ serve(async (req) => {
       
       // Standardize values to consistent decimal places
       const value = !isNaN(rawValue) ? standardizeValue(rawValue, item.testName) : null;
-      const refLow = rawRefLow != null && !isNaN(rawRefLow) ? standardizeValue(rawRefLow, item.testName) : null;
-      const refHigh = rawRefHigh != null && !isNaN(rawRefHigh) ? standardizeValue(rawRefHigh, item.testName) : null;
+      let refLow = rawRefLow != null && !isNaN(rawRefLow) ? standardizeValue(rawRefLow, item.testName) : null;
+      let refHigh = rawRefHigh != null && !isNaN(rawRefHigh) ? standardizeValue(rawRefHigh, item.testName) : null;
+      
+      // Apply fallback reference ranges if AI failed to extract them
+      const fallback = KNOWN_REFERENCE_RANGES[item.testName];
+      if (fallback) {
+        if (refLow === null && fallback.refLow !== null) {
+          refLow = standardizeValue(fallback.refLow, item.testName);
+          console.log(`Applied fallback refLow for ${item.testName}: ${refLow}`);
+        }
+        if (refHigh === null && fallback.refHigh !== null) {
+          refHigh = standardizeValue(fallback.refHigh, item.testName);
+          console.log(`Applied fallback refHigh for ${item.testName}: ${refHigh}`);
+        }
+      }
+      
+      // Log warning for items with still missing ranges
+      if (refLow === null && refHigh === null) {
+        console.warn(`No reference range available for ${item.testName}`);
+      }
       
       // Build refRaw string
       let refRaw = '';
