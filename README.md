@@ -1,7 +1,7 @@
 <div align="center">
 
 <!-- Banner placeholder — replace with your own -->
-![HealthTrend Banner](docs/banner.png)
+
 
 # 🩸 HealthTrend
 
